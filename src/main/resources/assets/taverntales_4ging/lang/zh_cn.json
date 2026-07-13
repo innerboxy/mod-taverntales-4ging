@@ -1,0 +1,16 @@
+{
+  "block.taverntales_4ging.equipment_forge": "装备锻造台",
+  "taverntales_4ging.gui.materials": "所需材料:",
+  "taverntales_4ging.gui.craft": "制作",
+  "taverntales_4ging.gui.search": "搜索...",
+  "taverntales_4ging.gui.select_hint": "请选择物品",
+  "taverntales_4ging.gui.filter_all": "显示全部",
+  "taverntales_4ging.gui.filter_craftable": "仅显示可合成",
+  "taverntales_4ging.jei.equipment_forge": "装备锻造",
+  "taverntales_4ging.category.all": "全部",
+  "taverntales_4ging.category.melee": "近战武器",
+  "taverntales_4ging.category.ranged": "远程武器",
+  "taverntales_4ging.category.magic": "魔法武器",
+  "taverntales_4ging.category.armor": "盔甲",
+  "taverntales_4ging.category.curio": "饰品"
+}

@@ -1,0 +1,16 @@
+{
+  "block.taverntales_4ging.equipment_forge": "Equipment Forge",
+  "taverntales_4ging.gui.materials": "Materials:",
+  "taverntales_4ging.gui.craft": "Craft",
+  "taverntales_4ging.gui.search": "Search...",
+  "taverntales_4ging.gui.select_hint": "Please select an item",
+  "taverntales_4ging.gui.filter_all": "Showing all",
+  "taverntales_4ging.gui.filter_craftable": "Showing craftable only",
+  "taverntales_4ging.jei.equipment_forge": "Equipment Forging",
+  "taverntales_4ging.category.all": "All",
+  "taverntales_4ging.category.melee": "Melee Weapons",
+  "taverntales_4ging.category.ranged": "Ranged Weapons",
+  "taverntales_4ging.category.magic": "Magic Weapons",
+  "taverntales_4ging.category.armor": "Armor",
+  "taverntales_4ging.category.curio": "Curios"
+}
