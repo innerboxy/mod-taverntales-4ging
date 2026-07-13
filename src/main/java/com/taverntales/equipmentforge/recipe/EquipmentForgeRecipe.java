@@ -2,12 +2,14 @@ package com.taverntales.equipmentforge.recipe;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.taverntales.equipmentforge.compat.beyonddimensions.BeyondDimensionsCompat;
 import com.taverntales.equipmentforge.registry.ModRecipes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -43,43 +45,53 @@ public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
         return materials;
     }
 
-    /** 背包中与该材料匹配的物品总数 */
-    public static int countMatching(Inventory inventory, Ingredient ingredient) {
-        int total = 0;
+    /** 背包(主背包 + 副手)与额外物品列表(如超越维度网络快照)中与该材料匹配的物品总数 */
+    public static int countMatching(Inventory inventory, List<ItemStack> extraStacks, Ingredient ingredient) {
+        long total = 0;
         for (ItemStack stack : inventory.items) {
             if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
         }
         for (ItemStack stack : inventory.offhand) {
             if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
         }
-        return total;
+        for (ItemStack stack : extraStacks) {
+            if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
+        }
+        return (int) Math.min(total, Integer.MAX_VALUE);
     }
 
-    /** 材料是否全部足够 */
-    public boolean canCraft(Inventory inventory) {
+    /** 材料是否全部足够,extraStacks 为背包之外可用的物品(如超越维度网络快照) */
+    public boolean canCraft(Inventory inventory, List<ItemStack> extraStacks) {
         // 逐项扣减快照,避免两种材料匹配同一批物品时重复计数
-        List<ItemStack> snapshot = snapshot(inventory);
+        List<ItemStack> snapshot = snapshot(inventory, extraStacks);
         for (SizedIngredient material : materials) {
             if (takeFrom(snapshot, material) < material.count()) return false;
         }
         return true;
     }
 
-    /** 服务端:校验并消耗材料,成功返回 true(失败不消耗任何物品) */
-    public boolean consume(Inventory inventory) {
-        if (!canCraft(inventory)) return false;
+    /**
+     * 服务端:校验并消耗材料,成功返回 true(失败不消耗任何物品)。
+     * 背包(主背包 + 副手)优先,不足部分从玩家的超越维度网络提取。
+     */
+    public boolean consume(Player player) {
+        Inventory inventory = player.getInventory();
+        List<ItemStack> netItems = BeyondDimensionsCompat.getStoredItems(player);
+        if (!canCraft(inventory, netItems)) return false;
         for (SizedIngredient material : materials) {
             int needed = material.count();
             needed -= shrinkMatching(inventory.items, material.ingredient(), needed);
-            if (needed > 0) shrinkMatching(inventory.offhand, material.ingredient(), needed);
+            if (needed > 0) needed -= shrinkMatching(inventory.offhand, material.ingredient(), needed);
+            if (needed > 0) BeyondDimensionsCompat.extractMatching(player, material.ingredient(), needed);
         }
         return true;
     }
 
-    private static List<ItemStack> snapshot(Inventory inventory) {
+    private static List<ItemStack> snapshot(Inventory inventory, List<ItemStack> extraStacks) {
         List<ItemStack> copies = new ArrayList<>();
         inventory.items.forEach(s -> { if (!s.isEmpty()) copies.add(s.copy()); });
         inventory.offhand.forEach(s -> { if (!s.isEmpty()) copies.add(s.copy()); });
+        extraStacks.forEach(s -> { if (!s.isEmpty()) copies.add(s.copy()); });
         return copies;
     }
 

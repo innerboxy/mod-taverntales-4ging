@@ -31,3 +31,10 @@ Equipment Forge: a data-driven crafting station for TavernTales.
     versionRange="[19,)"
     ordering="AFTER"
     side="CLIENT"
+
+[[dependencies."${mod_id}"]]
+    modId="beyonddimensions"
+    type="optional"
+    versionRange="[0.7,)"
+    ordering="AFTER"
+    side="BOTH"

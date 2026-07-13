@@ -9,6 +9,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
+
 /**
  * 装备锻造台菜单:无机器格子,材料直接读取玩家背包。
  * 下半部分展示玩家背包(槽位 0-26)与快捷栏(槽位 27-35)。
@@ -21,6 +23,8 @@ public class EquipmentForgeMenu extends AbstractContainerMenu {
 
     public final Inventory playerInventory;
     private final ContainerLevelAccess access;
+    /** 客户端缓存:超越维度网络中的物品快照,由服务端在开界面和锻造后通过 NetItemsPayload 同步 */
+    private List<ItemStack> netItems = List.of();
 
     /** 客户端构造 */
     public EquipmentForgeMenu(int containerId, Inventory playerInventory) {
@@ -43,6 +47,14 @@ public class EquipmentForgeMenu extends AbstractContainerMenu {
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, INV_X + col * 18, HOTBAR_Y));
         }
+    }
+
+    public List<ItemStack> netItems() {
+        return netItems;
+    }
+
+    public void setNetItems(List<ItemStack> items) {
+        this.netItems = items;
     }
 
     @Override

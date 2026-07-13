@@ -14,6 +14,10 @@ repositories {
         name = 'BlameJared' // JEI
         url = 'https://maven.blamejared.com/'
     }
+    maven {
+        name = 'Modrinth' // BeyondDimensions
+        url = 'https://api.modrinth.com/maven'
+    }
 }
 
 base {
@@ -67,6 +71,10 @@ dependencies {
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+
+    // 超越维度:软依赖;运行时通过 ModList 探测,未安装时联动代码不加载。runtimeOnly 仅供开发环境测试联动
+    compileOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
+    runtimeOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

@@ -2,8 +2,10 @@ package com.taverntales.equipmentforge.block;
 
 import com.mojang.serialization.MapCodec;
 import com.taverntales.equipmentforge.menu.EquipmentForgeMenu;
+import com.taverntales.equipmentforge.network.ModNetworking;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -48,6 +50,10 @@ public class EquipmentForgeBlock extends HorizontalDirectionalBlock {
                     (id, inventory, p) -> new EquipmentForgeMenu(id, inventory, ContainerLevelAccess.create(level, pos)),
                     TITLE
             ));
+            // 开界面时同步超越维度网络物品快照,供客户端可制作检测使用
+            if (player instanceof ServerPlayer serverPlayer) {
+                ModNetworking.syncNetItems(serverPlayer);
+            }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

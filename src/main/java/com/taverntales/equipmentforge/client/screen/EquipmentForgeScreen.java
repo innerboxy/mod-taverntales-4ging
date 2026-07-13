@@ -217,7 +217,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private void refreshCraftable() {
         craftableIds.clear();
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
-            if (holder.value().canCraft(menu.playerInventory)) {
+            if (holder.value().canCraft(menu.playerInventory, menu.netItems())) {
                 craftableIds.add(holder.id());
             }
         }
@@ -442,7 +442,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             ItemStack icon = materialIcon(material);
             if (icon.isEmpty()) continue;
 
-            int owned = EquipmentForgeRecipe.countMatching(menu.playerInventory, material.ingredient());
+            int owned = EquipmentForgeRecipe.countMatching(menu.playerInventory, menu.netItems(), material.ingredient());
             boolean enough = owned >= material.count();
 
             guiGraphics.renderItem(icon, x, y);
