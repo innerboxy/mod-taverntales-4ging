@@ -1,0 +1,26 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:vanilla_recipe_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": {
+      "item": "minecraft:stick"
+    },
+    "X": {
+      "item": "minecraft:gold_ingot"
+    }
+  },
+  "pattern": [
+    "XXX",
+    " # ",
+    " # "
+  ],
+  "result": {
+    "count": 1,
+    "id": "minecraft:golden_pickaxe"
+  }
+}

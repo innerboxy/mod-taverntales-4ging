@@ -1,0 +1,14 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "item": "minecraft:gold_ingot",
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "minecraft:golden_boots",
+    "count": 1
+  }
+}

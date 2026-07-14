@@ -7,6 +7,7 @@ import com.taverntales.equipmentforge.registry.ModRecipes;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -27,17 +28,18 @@ import java.util.List;
  * 数据包格式见 data/wmserver/recipe/ 下的示例。
  */
 public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
-    private final EquipmentCategory category;
+    /** 分类 id,对应数据包注册表 taverntales_4ging:equipment_category 中的某个分类 */
+    private final ResourceLocation category;
     private final List<SizedIngredient> materials;
     private final ItemStack result;
 
-    public EquipmentForgeRecipe(EquipmentCategory category, List<SizedIngredient> materials, ItemStack result) {
+    public EquipmentForgeRecipe(ResourceLocation category, List<SizedIngredient> materials, ItemStack result) {
         this.category = category;
         this.materials = materials;
         this.result = result;
     }
 
-    public EquipmentCategory category() {
+    public ResourceLocation category() {
         return category;
     }
 
@@ -158,13 +160,13 @@ public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
 
     public static class Serializer implements RecipeSerializer<EquipmentForgeRecipe> {
         public static final MapCodec<EquipmentForgeRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-                EquipmentCategory.CODEC.fieldOf("category").forGetter(EquipmentForgeRecipe::category),
+                ResourceLocation.CODEC.fieldOf("category").forGetter(EquipmentForgeRecipe::category),
                 SizedIngredient.FLAT_CODEC.listOf().fieldOf("materials").forGetter(EquipmentForgeRecipe::materials),
                 ItemStack.STRICT_CODEC.fieldOf("result").forGetter(r -> r.result)
         ).apply(instance, EquipmentForgeRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, EquipmentForgeRecipe> STREAM_CODEC = StreamCodec.composite(
-                EquipmentCategory.STREAM_CODEC, EquipmentForgeRecipe::category,
+                ResourceLocation.STREAM_CODEC, EquipmentForgeRecipe::category,
                 SizedIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), EquipmentForgeRecipe::materials,
                 ItemStack.STREAM_CODEC, r -> r.result,
                 EquipmentForgeRecipe::new

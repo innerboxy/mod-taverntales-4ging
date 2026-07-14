@@ -1,0 +1,18 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 1
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "minecraft:iron_hoe",
+    "count": 1
+  }
+}

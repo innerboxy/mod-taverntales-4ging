@@ -1,0 +1,14 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "item": "minecraft:diamond",
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "minecraft:diamond_boots",
+    "count": 1
+  }
+}

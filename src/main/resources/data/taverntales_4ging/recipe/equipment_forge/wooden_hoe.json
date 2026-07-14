@@ -1,0 +1,14 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:wooden_hoe",
+    "count": 1
+  }
+}

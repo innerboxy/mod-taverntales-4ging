@@ -1,0 +1,22 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:ranged",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 3
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 2
+    },
+    {
+      "item": "minecraft:string",
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "minecraft:crossbow",
+    "count": 1
+  }
+}

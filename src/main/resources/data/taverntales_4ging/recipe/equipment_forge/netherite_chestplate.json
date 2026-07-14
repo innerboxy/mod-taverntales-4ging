@@ -1,0 +1,22 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "item": "minecraft:diamond",
+      "count": 13
+    },
+    {
+      "item": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "item": "minecraft:gold_ingot",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:netherite_chestplate",
+    "count": 1
+  }
+}

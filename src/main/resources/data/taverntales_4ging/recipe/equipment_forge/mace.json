@@ -1,0 +1,22 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:melee",
+  "materials": [
+    {
+      "item": "minecraft:heavy_core",
+      "count": 1
+    },
+    {
+      "item": "minecraft:breeze_rod",
+      "count": 1
+    },
+    {
+      "item": "minecraft:iron_ingot",
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "minecraft:mace",
+    "count": 1
+  }
+}

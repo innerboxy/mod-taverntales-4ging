@@ -1,0 +1,26 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 2
+    },
+    {
+      "item": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 8
+    },
+    {
+      "item": "minecraft:gold_ingot",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:netherite_pickaxe",
+    "count": 1
+  }
+}

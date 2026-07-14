@@ -1,0 +1,14 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "item": "minecraft:turtle_scute",
+      "count": 5
+    }
+  ],
+  "result": {
+    "id": "minecraft:turtle_helmet",
+    "count": 1
+  }
+}

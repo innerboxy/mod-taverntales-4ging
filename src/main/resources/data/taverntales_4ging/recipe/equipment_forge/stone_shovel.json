@@ -1,0 +1,18 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 1
+    },
+    {
+      "tag": "minecraft:stone_tool_materials",
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "minecraft:stone_shovel",
+    "count": 1
+  }
+}

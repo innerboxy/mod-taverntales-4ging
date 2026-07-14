@@ -4,9 +4,10 @@ import com.taverntales.equipmentforge.TavernTalesEquipmentForge;
 import com.taverntales.equipmentforge.client.PinyinSearch;
 import com.taverntales.equipmentforge.menu.EquipmentForgeMenu;
 import com.taverntales.equipmentforge.network.CraftEquipmentPayload;
-import com.taverntales.equipmentforge.recipe.EquipmentCategory;
+import com.taverntales.equipmentforge.recipe.EquipmentCategoryDefinition;
 import com.taverntales.equipmentforge.recipe.EquipmentForgeRecipe;
 import com.taverntales.equipmentforge.registry.ModRecipes;
+import com.taverntales.equipmentforge.registry.ModRegistries;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,7 +26,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
@@ -115,36 +116,18 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final ResourceLocation FILTER_DISABLED_HIGHLIGHTED_SPRITE =
             ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
 
+    /** 内置"全部"标签的翻译名与图标 */
+    private static final Component ALL_LABEL = Component.translatable("taverntales_4ging.category.all");
+    private static final ItemStack ALL_ICON = new ItemStack(Items.COMPASS);
+
     /** 分类子标签,category 为 null 表示"全部" */
-    private record CategoryTab(EquipmentCategory category, ItemStack icon, Component label) {
-        static CategoryTab of(EquipmentCategory category, ItemLike icon, String key) {
-            return new CategoryTab(category, new ItemStack(icon),
-                    Component.translatable("taverntales_4ging.category." + key));
-        }
+    private record CategoryTab(ResourceLocation category, ItemStack icon, Component label) {}
 
-        /** 装了对应 mod(物品已注册)时使用 moddedIconId 图标,否则回退到 fallback */
-        static CategoryTab of(EquipmentCategory category, String moddedIconId, ItemLike fallback, String key) {
-            ItemStack icon = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(moddedIconId))
-                    .filter(item -> item != Items.AIR)
-                    .map(ItemStack::new)
-                    .orElseGet(() -> new ItemStack(fallback));
-            return new CategoryTab(category, icon,
-                    Component.translatable("taverntales_4ging.category." + key));
-        }
-    }
+    /** 标签列表:内置"全部"置顶,其余由数据包注册表驱动,init 时构建 */
+    private List<CategoryTab> tabs = List.of();
 
-    private static final List<CategoryTab> TABS = List.of(
-            CategoryTab.of(null, Items.COMPASS, "all"),
-            CategoryTab.of(EquipmentCategory.MELEE, Items.IRON_SWORD, "melee"),
-            CategoryTab.of(EquipmentCategory.RANGED, Items.BOW, "ranged"),
-            // 铁魔法(irons_spellbook)存在时用其物品图标,否则回退原版
-            CategoryTab.of(EquipmentCategory.MAGIC, "irons_spellbook:iron_spell_book", Items.BOOK, "magic"),
-            CategoryTab.of(EquipmentCategory.ARMOR, Items.DIAMOND_CHESTPLATE, "armor"),
-            CategoryTab.of(EquipmentCategory.SHIELD, Items.SHIELD, "shield"),
-            CategoryTab.of(EquipmentCategory.CURIO, "irons_spellbook:affinity_ring", Items.ELYTRA, "curio"));
-
-    /** 当前选中的分类,null 表示"全部" */
-    private EquipmentCategory activeCategory;
+    /** 当前选中的分类 id,null 表示"全部" */
+    private ResourceLocation activeCategory;
     /** 是否仅显示可合成配方 */
     private boolean craftableOnly;
 
@@ -179,6 +162,8 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         craftButton = new CraftIconButton(leftPos + BUTTON_X, topPos + BUTTON_Y, b -> sendCraft());
         addRenderableWidget(craftButton);
 
+        buildTabs();
+
         // 排序:先按结果物品稀有度(普通→史诗),再按创造模式物品栏(搜索页)顺序
         Map<Item, Integer> creativeOrder = buildCreativeOrder();
         var registries = minecraft.level.registryAccess();
@@ -199,6 +184,43 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         }
         refreshCraftable();
         refreshFiltered();
+        warnUnknownCategories();
+    }
+
+    /** 从数据包注册表构建标签:内置"全部"置顶,其余按 order、再按 id 字母序 */
+    private void buildTabs() {
+        List<CategoryTab> list = new ArrayList<>();
+        list.add(new CategoryTab(null, ALL_ICON, ALL_LABEL));
+        minecraft.level.registryAccess()
+                .registry(ModRegistries.EQUIPMENT_CATEGORY)
+                .ifPresent(registry -> registry.entrySet().stream()
+                        .sorted(Comparator
+                                .comparingInt((Map.Entry<ResourceKey<EquipmentCategoryDefinition>, EquipmentCategoryDefinition> e) ->
+                                        e.getValue().order())
+                                .thenComparing(e -> e.getKey().location().toString()))
+                        .forEach(e -> {
+                            EquipmentCategoryDefinition def = e.getValue();
+                            Item icon = BuiltInRegistries.ITEM.getOptional(def.icon())
+                                    .filter(item -> item != Items.AIR)
+                                    .orElse(Items.BOOK);
+                            list.add(new CategoryTab(e.getKey().location(), new ItemStack(icon), def.name()));
+                        }));
+        tabs = List.copyOf(list);
+    }
+
+    /** 配方引用了未定义的分类 id 时打调试日志(这类配方只会出现在"全部"中) */
+    private void warnUnknownCategories() {
+        Set<ResourceLocation> known = new HashSet<>();
+        for (CategoryTab tab : tabs) {
+            if (tab.category() != null) known.add(tab.category());
+        }
+        for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
+            ResourceLocation cat = holder.value().category();
+            if (!known.contains(cat)) {
+                TavernTalesEquipmentForge.LOGGER.debug(
+                        "配方 {} 的分类 {} 未定义,仅在\"全部\"标签中显示", holder.id(), cat);
+            }
+        }
     }
 
     @Override
@@ -240,7 +262,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         String query = searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);
         List<RecipeHolder<EquipmentForgeRecipe>> list = new ArrayList<>();
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
-            if (activeCategory != null && holder.value().category() != activeCategory) continue;
+            if (activeCategory != null && !activeCategory.equals(holder.value().category())) continue;
             if (craftableOnly && !craftableIds.contains(holder.id())) continue;
             if (!query.isEmpty()) {
                 String[] keys = searchKeys.get(holder.id());
@@ -275,7 +297,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         renderMaterialTooltip(guiGraphics, mouseX, mouseY);
         int tab = tabIndexAt(mouseX, mouseY);
         if (tab >= 0) {
-            guiGraphics.renderTooltip(font, TABS.get(tab).label(), mouseX, mouseY);
+            guiGraphics.renderTooltip(font, tabs.get(tab).label(), mouseX, mouseY);
         }
         if (isFilterHovered(mouseX, mouseY)) {
             guiGraphics.renderTooltip(font,
@@ -346,9 +368,9 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     /** 左侧竖排分类子标签,选中的标签与主面板连成一体 */
     private void renderTabs(GuiGraphics guiGraphics) {
-        for (int i = 0; i < TABS.size(); i++) {
-            CategoryTab tab = TABS.get(i);
-            boolean active = tab.category() == activeCategory;
+        for (int i = 0; i < tabs.size(); i++) {
+            CategoryTab tab = tabs.get(i);
+            boolean active = java.util.Objects.equals(tab.category(), activeCategory);
             int x = leftPos - TAB_SIZE;
             int y = topPos + TAB_Y0 + i * (TAB_SIZE + TAB_GAP);
             // 多画 1px 盖住主面板左边框,使标签看起来贴在面板上
@@ -364,7 +386,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     /** 分类标签占用的额外屏幕区域,供 JEI 等覆盖层避让 */
     public Rect2i getTabArea() {
         return new Rect2i(leftPos - TAB_SIZE, topPos + TAB_Y0,
-                TAB_SIZE + 1, TABS.size() * (TAB_SIZE + TAB_GAP) - TAB_GAP);
+                TAB_SIZE + 1, tabs.size() * (TAB_SIZE + TAB_GAP) - TAB_GAP);
     }
 
     /** 鼠标所在的分类标签下标,不在标签上返回 -1 */
@@ -374,7 +396,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         int gy = (int) (mouseY - (topPos + TAB_Y0));
         if (gy < 0 || gy % (TAB_SIZE + TAB_GAP) >= TAB_SIZE) return -1;
         int index = gy / (TAB_SIZE + TAB_GAP);
-        return index < TABS.size() ? index : -1;
+        return index < tabs.size() ? index : -1;
     }
 
     private static void drawPanel(GuiGraphics g, int x, int y, int w, int h, int fill) {
@@ -534,7 +556,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             }
             int tab = tabIndexAt(mouseX, mouseY);
             if (tab >= 0) {
-                activeCategory = TABS.get(tab).category();
+                activeCategory = tabs.get(tab).category();
                 scrollRow = 0;
                 refreshFiltered();
                 minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f));

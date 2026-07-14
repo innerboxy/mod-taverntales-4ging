@@ -1,0 +1,8 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:melee",
+  "materials": [
+    { "tag": "minecraft:planks", "count": 4 }
+  ],
+  "result": { "id": "minecraft:wooden_sword", "count": 1 }
+}

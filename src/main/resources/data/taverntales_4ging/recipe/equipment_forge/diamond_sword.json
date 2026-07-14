@@ -1,0 +1,18 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:melee",
+  "materials": [
+    {
+      "tag": "minecraft:planks",
+      "count": 2
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:diamond_sword",
+    "count": 1
+  }
+}

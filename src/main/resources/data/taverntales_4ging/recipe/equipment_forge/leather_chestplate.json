@@ -1,0 +1,14 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "item": "minecraft:leather",
+      "count": 8
+    }
+  ],
+  "result": {
+    "id": "minecraft:leather_chestplate",
+    "count": 1
+  }
+}

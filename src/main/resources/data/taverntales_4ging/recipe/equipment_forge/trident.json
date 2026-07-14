@@ -1,0 +1,26 @@
+{
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:melee",
+  "materials": [
+    {
+      "item": "minecraft:nautilus_shell",
+      "count": 1
+    },
+    {
+      "item": "minecraft:prismarine_shard",
+      "count": 3
+    },
+    {
+      "item": "minecraft:prismarine_crystals",
+      "count": 3
+    },
+    {
+      "item": "minecraft:diamond",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:trident",
+    "count": 1
+  }
+}
