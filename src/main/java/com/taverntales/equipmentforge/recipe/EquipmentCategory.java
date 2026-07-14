@@ -12,6 +12,7 @@ public enum EquipmentCategory implements StringRepresentable {
     RANGED("ranged"),
     MAGIC("magic"),
     ARMOR("armor"),
+    SHIELD("shield"),
     CURIO("curio");
 
     public static final Codec<EquipmentCategory> CODEC = StringRepresentable.fromEnum(EquipmentCategory::values);

@@ -14,6 +14,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -120,15 +121,27 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             return new CategoryTab(category, new ItemStack(icon),
                     Component.translatable("taverntales_4ging.category." + key));
         }
+
+        /** 装了对应 mod(物品已注册)时使用 moddedIconId 图标,否则回退到 fallback */
+        static CategoryTab of(EquipmentCategory category, String moddedIconId, ItemLike fallback, String key) {
+            ItemStack icon = BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(moddedIconId))
+                    .filter(item -> item != Items.AIR)
+                    .map(ItemStack::new)
+                    .orElseGet(() -> new ItemStack(fallback));
+            return new CategoryTab(category, icon,
+                    Component.translatable("taverntales_4ging.category." + key));
+        }
     }
 
     private static final List<CategoryTab> TABS = List.of(
             CategoryTab.of(null, Items.COMPASS, "all"),
             CategoryTab.of(EquipmentCategory.MELEE, Items.IRON_SWORD, "melee"),
             CategoryTab.of(EquipmentCategory.RANGED, Items.BOW, "ranged"),
-            CategoryTab.of(EquipmentCategory.MAGIC, Items.BOOK, "magic"),
+            // 铁魔法(irons_spellbook)存在时用其物品图标,否则回退原版
+            CategoryTab.of(EquipmentCategory.MAGIC, "irons_spellbook:iron_spell_book", Items.BOOK, "magic"),
             CategoryTab.of(EquipmentCategory.ARMOR, Items.DIAMOND_CHESTPLATE, "armor"),
-            CategoryTab.of(EquipmentCategory.CURIO, Items.ELYTRA, "curio"));
+            CategoryTab.of(EquipmentCategory.SHIELD, Items.SHIELD, "shield"),
+            CategoryTab.of(EquipmentCategory.CURIO, "irons_spellbook:affinity_ring", Items.ELYTRA, "curio"));
 
     /** 当前选中的分类,null 表示"全部" */
     private EquipmentCategory activeCategory;
