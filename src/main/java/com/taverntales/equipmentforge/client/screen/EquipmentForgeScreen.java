@@ -280,6 +280,36 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         return Math.max(0, (filtered.size() + GRID_COLS - 1) / GRID_COLS - GRID_ROWS);
     }
 
+    /** JEI 物品转移的待选配方 id;在锻造界面下次渲染时消费(此时 JEI 配方界面已关闭) */
+    private static ResourceLocation pendingSelect;
+
+    /** 由 JEI 转移处理器调用:请求下次打开/返回锻造界面时选中该配方 */
+    public static void requestSelect(ResourceLocation recipeId) {
+        pendingSelect = recipeId;
+    }
+
+    /**
+     * 在锻造界面中选中指定配方并使其可见。
+     * 清空搜索、取消"仅可合成"过滤,并切换到该配方的分类(未知分类则回到"全部"),再滚动到该项。
+     */
+    private void selectRecipe(ResourceLocation recipeId) {
+        for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
+            if (!holder.id().equals(recipeId)) continue;
+            selected = holder;
+            if (searchBox != null) searchBox.setValue("");
+            craftableOnly = false;
+            ResourceLocation cat = holder.value().category();
+            boolean hasTab = tabs.stream().anyMatch(t -> cat.equals(t.category()));
+            activeCategory = hasTab ? cat : null;
+            refreshFiltered();
+            int idx = filtered.indexOf(holder);
+            if (idx >= 0) {
+                scrollRow = Math.max(0, Math.min(maxScrollRow(), idx / GRID_COLS - GRID_ROWS / 2));
+            }
+            return;
+        }
+    }
+
     private void sendCraft() {
         if (selected != null && craftableIds.contains(selected.id())) {
             PacketDistributor.sendToServer(new CraftEquipmentPayload(selected.id()));
@@ -288,6 +318,12 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        // 消费 JEI 物品转移请求(此时已返回锻造界面)
+        if (pendingSelect != null) {
+            ResourceLocation id = pendingSelect;
+            pendingSelect = null;
+            selectRecipe(id);
+        }
         craftButton.active = selected != null && craftableIds.contains(selected.id());
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderGrid(guiGraphics, mouseX, mouseY);

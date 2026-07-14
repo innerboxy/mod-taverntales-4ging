@@ -13,6 +13,7 @@ import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.IRecipeTransferRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
@@ -52,6 +53,12 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ModItems.EQUIPMENT_FORGE.get()), EQUIPMENT_FORGE);
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(IRecipeTransferRegistration registration) {
+        // 「+」按钮:在打开的锻造台里选中该配方(不移动物品,材料取自背包/网络)
+        registration.addRecipeTransferHandler(new EquipmentForgeTransferHandler(), EQUIPMENT_FORGE);
     }
 
     @Override

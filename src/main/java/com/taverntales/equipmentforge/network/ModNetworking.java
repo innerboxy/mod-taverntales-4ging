@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -43,10 +44,9 @@ public class ModNetworking {
             if (!(holder.value() instanceof EquipmentForgeRecipe recipe)) return;
             if (!recipe.consume(player)) return;
 
+            // 背包能放多少放多少,放不下的掉落到地上(避免背包满时物品丢失)
             ItemStack result = recipe.getResultItem(player.registryAccess()).copy();
-            if (!player.getInventory().add(result)) {
-                player.drop(result, false);
-            }
+            ItemHandlerHelper.giveItemToPlayer(player, result);
             player.level().playSound(null, player.blockPosition(),
                     SoundEvents.SMITHING_TABLE_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
             // 锻造可能消耗了网络中的物品,同步最新快照
