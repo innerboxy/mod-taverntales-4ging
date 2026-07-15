@@ -1,10 +1,27 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
   "type": "taverntales_4ging:equipment_forge",
   "category": "taverntales_4ging:curio",
   "materials": [
-    { "item": "minecraft:phantom_membrane", "count": 7 },
-    { "item": "minecraft:netherite_ingot", "count": 1 },
-    { "item": "minecraft:nether_star", "count": 1 }
+    {
+      "item": "minecraft:phantom_membrane",
+      "count": 7
+    },
+    {
+      "item": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "item": "minecraft:nether_star",
+      "count": 1
+    }
   ],
-  "result": { "id": "minecraft:elytra", "count": 1 }
+  "result": {
+    "id": "minecraft:elytra",
+    "count": 1
+  }
 }

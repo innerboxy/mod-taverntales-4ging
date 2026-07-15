@@ -50,20 +50,40 @@ Minecraft **1.21.1** / **NeoForge** 模组,为 TavernTales 提供一个数据驱
 ```toml
 #移除被装备锻造台取代的原版工作台合成配方,使这些物品只能通过装备锻造台制作。
 removeVanillaRecipes = true
+#加载模组自带的默认分类标签(近战/远程/魔法/工具/盔甲/盾牌/饰品)。
+enableDefaultCategories = true
+#加载模组自带的默认锻造配方(木/石/铁/金/钻石/下界合金装备、弓弩、盾牌等)。
+enableDefaultRecipes = true
 ```
 
 | 选项 | 类型 | 默认 | 说明 |
 | --- | --- | --- | --- |
 | `removeVanillaRecipes` | boolean | `true` | 是否移除被锻造台取代的原版配方。一个开关统一控制全部。 |
+| `enableDefaultCategories` | boolean | `true` | 是否加载模组自带的 7 个默认分类标签。关闭后可由数据包完全自定义分类。 |
+| `enableDefaultRecipes` | boolean | `true` | 是否加载模组自带的默认锻造配方。关闭后可由数据包完全自定义配方表。 |
 
-**注意事项:**
+**三者的共同点:**
 
-- 该开关**只在服务端生效**。配方的移除发生在数据包加载阶段(服务端),配方表随后同步给客户端。
+- 都**只在服务端生效**。它们作用于数据包加载阶段(服务端),结果随后同步给客户端。
   - 单人游戏:本地配置文件即生效(单人客户端自带集成服务端)。
   - 多人游戏:**只有服务器的配置文件生效**,客户端改本地文件无效。
 - 修改后需要 `/reload` 或重进世界才会生效。
+
+**`removeVanillaRecipes`**
+
 - 开启时,以下原版配方会被移除:木/石/铁/金/钻石各阶的工具与剑、盾牌、弓、弩、重锤、皮革/铁/金/钻石套装、海龟壳,以及**下界合金装备的锻造台升级(smithing)配方**。
 - 关闭时,以上原版配方全部恢复,锻造台配方仍然可用(即两种途径并存)。
+
+**`enableDefaultCategories`**
+
+- 关闭后,`taverntales_4ging:melee` 等 7 个内置分类不再加载,左侧只剩内置的「全部」标签,可由数据包自行定义分类。
+- 注意:若同时保留了默认配方,那些配方引用的分类将不存在,于是**只会出现在「全部」标签中**。通常与 `enableDefaultRecipes = false` 搭配使用。
+
+**`enableDefaultRecipes`**
+
+- 关闭后,模组自带的 61 个锻造配方不再加载,可由数据包自行定义整套配方表。
+- **不影响装备锻造台方块自身的合成配方**(该方块始终可合成)。
+- 也不影响 `removeVanillaRecipes`——如需同时恢复原版配方,请另行关闭它。
 
 ---
 
@@ -135,12 +155,21 @@ removeVanillaRecipes = true
 | `taverntales_4ging:shield` | 5 | 盾牌   |
 | `taverntales_4ging:curio` | 6 | 鞘翅   |
 
-### 3.3 移除原版配方(配方条件)
+### 3.3 数据包条件
 
-模组注册了一个数据包配方条件:
+模组注册了三个数据包条件,分别对应三个配置项。NeoForge 的规则是「条件为 `true` 时该条数据才加载」,所以条件名描述的都是"**加载**"这一侧的状态:
 
-- **条件 id**:`taverntales_4ging:vanilla_recipe_enabled`
-- **语义**:当配置 `removeVanillaRecipes` 为 `false`(即**不移除**)时返回 `true`。
+| 条件 id | 返回 `true` 的时机 | 用在哪 |
+| --- | --- | --- |
+| `taverntales_4ging:vanilla_recipe_enabled` | `removeVanillaRecipes = false` 时 | 模组对原版配方的覆盖文件 |
+| `taverntales_4ging:default_recipes_enabled` | `enableDefaultRecipes = true` 时 | 模组自带的 61 个锻造配方 |
+| `taverntales_4ging:default_categories_enabled` | `enableDefaultCategories = true` 时 | 模组自带的 7 个分类定义 |
+
+> 条件不仅能用在配方上——NeoForge 给数据包注册表也接上了条件解析,所以分类定义(3.2)同样支持 `neoforge:conditions`。
+
+#### 用条件移除原版配方
+
+`vanilla_recipe_enabled` 的语义是:当配置 `removeVanillaRecipes` 为 `false`(即**不移除**)时返回 `true`。
 
 由于 NeoForge 的规则是「条件为 true 时配方才加载」,把它挂在原版配方文件上,即可实现"配置开启时原版配方不加载"。做法是**用与原版内容一致的文件覆盖原版配方**,并在顶部加上条件:
 

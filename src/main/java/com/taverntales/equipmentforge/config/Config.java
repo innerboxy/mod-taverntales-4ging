@@ -16,5 +16,20 @@ public class Config {
                     "so those items can only be made at the forge. One switch controls all of them.")
             .define("removeVanillaRecipes", true);
 
+    /** 是否加载模组自带的默认分类标签。默认开启。 */
+    public static final ModConfigSpec.BooleanValue ENABLE_DEFAULT_CATEGORIES = BUILDER
+            .comment("加载模组自带的默认分类标签(近战/远程/魔法/工具/盔甲/盾牌/饰品)。",
+                    "关闭后可由数据包完全自定义分类;仍引用这些分类的配方将只出现在「全部」标签中。",
+                    "Load the mod's built-in category tabs. Disable to define categories entirely via datapack.")
+            .define("enableDefaultCategories", true);
+
+    /** 是否加载模组自带的默认锻造配方。默认开启。 */
+    public static final ModConfigSpec.BooleanValue ENABLE_DEFAULT_RECIPES = BUILDER
+            .comment("加载模组自带的默认锻造配方(木/石/铁/金/钻石/下界合金装备、弓弩、盾牌等)。",
+                    "关闭后可由数据包完全自定义配方表。不影响装备锻造台方块自身的合成配方。",
+                    "Load the mod's built-in forge recipes. Disable to define recipes entirely via datapack.",
+                    "Does not affect the crafting recipe of the Equipment Forge block itself.")
+            .define("enableDefaultRecipes", true);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 }

@@ -37,17 +37,27 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(
-                new EquipmentForgeRecipeCategory(registration.getJeiHelpers().getGuiHelper()));
+        registration.addRecipeCategories(new EquipmentForgeRecipeCategory(
+                registration.getJeiHelpers().getGuiHelper(), maxMaterialCount()));
+    }
+
+    /** 已加载配方中最多的材料数,决定 JEI 分类的行数(分类尺寸无法逐配方变化);无配方时至少留一行 */
+    private static int maxMaterialCount() {
+        return loadedRecipes().stream()
+                .mapToInt(h -> h.value().materials().size())
+                .max()
+                .orElse(1);
+    }
+
+    private static List<RecipeHolder<EquipmentForgeRecipe>> loadedRecipes() {
+        Level level = Minecraft.getInstance().level;
+        if (level == null) return List.of();
+        return level.getRecipeManager().getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get());
     }
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) return;
-        List<RecipeHolder<EquipmentForgeRecipe>> recipes =
-                level.getRecipeManager().getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get());
-        registration.addRecipes(EQUIPMENT_FORGE, recipes);
+        registration.addRecipes(EQUIPMENT_FORGE, loadedRecipes());
     }
 
     @Override

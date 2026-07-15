@@ -1,4 +1,9 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_categories_enabled"
+    }
+  ],
   "name": {
     "translate": "taverntales_4ging.category.shield"
   },
