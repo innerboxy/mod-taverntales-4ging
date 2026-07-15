@@ -120,6 +120,23 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final Component ALL_LABEL = Component.translatable("taverntales_4ging.category.all");
     private static final ItemStack ALL_ICON = new ItemStack(Items.COMPASS);
 
+    /**
+     * 内置分类的图标回退:当分类数据里的 icon 物品不存在时使用
+     * (未装对应模组,或被数据包覆盖成了无效物品)。未登记的分类一律回退书本。
+     */
+    private static final Map<ResourceLocation, Item> FALLBACK_ICONS = Map.of(
+            categoryId("melee"), Items.IRON_SWORD,
+            categoryId("ranged"), Items.BOW,
+            categoryId("magic"), Items.BOOK,
+            categoryId("tool"), Items.DIAMOND_PICKAXE,
+            categoryId("armor"), Items.GOLDEN_CHESTPLATE,
+            categoryId("shield"), Items.SHIELD,
+            categoryId("curio"), Items.ELYTRA);
+
+    private static ResourceLocation categoryId(String path) {
+        return ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, path);
+    }
+
     /** 分类子标签,category 为 null 表示"全部" */
     private record CategoryTab(ResourceLocation category, ItemStack icon, Component label) {}
 
@@ -138,6 +155,12 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private final Set<ResourceLocation> craftableIds = new HashSet<>();
     private RecipeHolder<EquipmentForgeRecipe> selected;
     private int scrollRow;
+
+    /** 创造模式搜索页顺序,物品 -> 序号;配方与材料排序共用 */
+    private Map<Item, Integer> creativeOrder = Map.of();
+    /** 已排序的材料列表缓存(按稀有度、再按创造物品栏顺序),随选中配方变化重算 */
+    private RecipeHolder<EquipmentForgeRecipe> materialsCachedFor;
+    private List<SizedIngredient> sortedMaterials = List.of();
 
     private EditBox searchBox;
     private Button craftButton;
@@ -165,7 +188,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         buildTabs();
 
         // 排序:先按结果物品稀有度(普通→史诗),再按创造模式物品栏(搜索页)顺序
-        Map<Item, Integer> creativeOrder = buildCreativeOrder();
+        creativeOrder = buildCreativeOrder();
         var registries = minecraft.level.registryAccess();
         allRecipes = minecraft.level.getRecipeManager()
                 .getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get())
@@ -200,12 +223,18 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
                                 .thenComparing(e -> e.getKey().location().toString()))
                         .forEach(e -> {
                             EquipmentCategoryDefinition def = e.getValue();
-                            Item icon = BuiltInRegistries.ITEM.getOptional(def.icon())
-                                    .filter(item -> item != Items.AIR)
-                                    .orElse(Items.BOOK);
-                            list.add(new CategoryTab(e.getKey().location(), new ItemStack(icon), def.name()));
+                            ResourceLocation id = e.getKey().location();
+                            // icon 物品不存在(如未装对应模组)时,用硬编码的回退图标
+                            Item icon = existingItem(def.icon())
+                                    .orElseGet(() -> FALLBACK_ICONS.getOrDefault(id, Items.BOOK));
+                            list.add(new CategoryTab(id, new ItemStack(icon), def.name()));
                         }));
         tabs = List.copyOf(list);
+    }
+
+    /** 注册表中存在且非空气的物品 */
+    private static java.util.Optional<Item> existingItem(ResourceLocation id) {
+        return BuiltInRegistries.ITEM.getOptional(id).filter(item -> item != Items.AIR);
     }
 
     /** 配方引用了未定义的分类 id 时打调试日志(这类配方只会出现在"全部"中) */
@@ -506,7 +535,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             guiGraphics.drawWordWrap(font, SELECT_HINT, x, y, RIGHT_WIDTH - 8, 0xFF555555);
             return;
         }
-        List<SizedIngredient> materials = selected.value().materials();
+        List<SizedIngredient> materials = sortedMaterials();
         int rows = Math.min(materials.size(), MAX_MAT_ROWS);
         for (int i = 0; i < rows; i++) {
             SizedIngredient material = materials.get(i);
@@ -531,6 +560,30 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         }
     }
 
+    /**
+     * 选中配方的材料列表,先按稀有度、再按创造模式物品栏顺序排序(结果缓存,随选中配方变化重算)。
+     * 标签类材料以其第一个可选物品作为排序代表,避免轮换图标导致顺序抖动。
+     */
+    private List<SizedIngredient> sortedMaterials() {
+        if (selected == null) return List.of();
+        if (materialsCachedFor != selected) {
+            materialsCachedFor = selected;
+            sortedMaterials = selected.value().materials().stream()
+                    .sorted(Comparator
+                            .comparingInt((SizedIngredient m) -> sortRepresentative(m).getRarity().ordinal())
+                            .thenComparingInt(m -> creativeOrder.getOrDefault(
+                                    sortRepresentative(m).getItem(), Integer.MAX_VALUE)))
+                    .toList();
+        }
+        return sortedMaterials;
+    }
+
+    /** 材料的排序代表物品:取 ingredient 的第一个可选项(稳定,不随轮换变化) */
+    private static ItemStack sortRepresentative(SizedIngredient material) {
+        ItemStack[] options = material.ingredient().getItems();
+        return options.length == 0 ? ItemStack.EMPTY : options[0];
+    }
+
     /** 标签材料轮换展示可用物品 */
     private static ItemStack materialIcon(SizedIngredient material) {
         ItemStack[] options = material.ingredient().getItems();
@@ -545,14 +598,14 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         int gy = (int) (mouseY - (topPos + MAT_ROW_Y));
         if (gx < 0 || gx >= 16 || gy < 0 || gy % 18 >= 16) return -1;
         int index = gy / 18;
-        int rows = Math.min(selected.value().materials().size(), MAX_MAT_ROWS);
+        int rows = Math.min(sortedMaterials().size(), MAX_MAT_ROWS);
         return index < rows ? index : -1;
     }
 
     private void renderMaterialTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int index = materialIndexAt(mouseX, mouseY);
         if (index >= 0) {
-            ItemStack icon = materialIcon(selected.value().materials().get(index));
+            ItemStack icon = materialIcon(sortedMaterials().get(index));
             if (!icon.isEmpty()) {
                 guiGraphics.renderTooltip(font, icon, mouseX, mouseY);
             }

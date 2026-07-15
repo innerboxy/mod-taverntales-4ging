@@ -1,5 +1,7 @@
 {
-  "name": { "translate": "taverntales_4ging.category.ranged" },
+  "name": {
+    "translate": "taverntales_4ging.category.ranged"
+  },
   "order": 1,
   "icon": "minecraft:bow"
 }
