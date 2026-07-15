@@ -38,7 +38,6 @@ Minecraft **1.21.1** / **NeoForge** 模组,为 TavernTales 提供一个数据驱
 | Minecraft `1.21.1` | **必需** | — |
 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) `19+` | 可选(客户端) | 提供「装备锻造」配方查询分类;在锻造台界面点击 JEI 的「+」可直接跳转选中该配方 |
 | [Beyond Dimensions](https://modrinth.com/mod/beyonddimensions) `0.7+`(超越维度) | 可选 | 锻造时可直接消耗玩家**主网络**中存储的物品,界面的可合成判定与材料计数也会计入 |
-| [Iron's Spellbook](https://www.curseforge.com/minecraft/mc-mods/irons-spells-n-spellbooks)(铁魔法) | 可选 | 仅用于「魔法武器」「饰品」分类的标签图标;未安装时自动回退为书 / 鞘翅 |
 
 > 拼音检索所需的 pinyin4j 已通过 jarJar 打包进模组,无需额外安装。
 
