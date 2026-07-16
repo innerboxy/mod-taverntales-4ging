@@ -1,6 +1,7 @@
 package com.taverntales.equipmentforge.client.screen;
 
 import com.taverntales.equipmentforge.TavernTalesEquipmentForge;
+import com.taverntales.equipmentforge.client.CreativeOrder;
 import com.taverntales.equipmentforge.client.PinyinSearch;
 import com.taverntales.equipmentforge.menu.EquipmentForgeMenu;
 import com.taverntales.equipmentforge.network.CraftEquipmentPayload;
@@ -21,7 +22,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -211,7 +211,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         buildTabs();
 
         // 排序:先按结果物品稀有度(普通→史诗),再按创造模式物品栏(搜索页)顺序
-        creativeOrder = buildCreativeOrder();
+        creativeOrder = CreativeOrder.build();
         var registries = minecraft.level.registryAccess();
         allRecipes = minecraft.level.getRecipeManager()
                 .getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get())
@@ -286,21 +286,6 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     /** 创造模式搜索页的物品顺序,物品 -> 序号 */
-    private Map<Item, Integer> buildCreativeOrder() {
-        Map<Item, Integer> order = new HashMap<>();
-        try {
-            CreativeModeTabs.tryRebuildTabContents(
-                    minecraft.player.connection.enabledFeatures(), false, minecraft.level.registryAccess());
-        } catch (Exception e) {
-            TavernTalesEquipmentForge.LOGGER.debug("重建创造物品栏内容失败,使用现有缓存", e);
-        }
-        int index = 0;
-        for (ItemStack stack : CreativeModeTabs.searchTab().getDisplayItems()) {
-            order.putIfAbsent(stack.getItem(), index++);
-        }
-        return order;
-    }
-
     private void refreshCraftable() {
         craftableIds.clear();
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {

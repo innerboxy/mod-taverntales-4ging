@@ -1,8 +1,13 @@
 package com.taverntales.equipmentforge.compat.jei;
 
 import com.taverntales.equipmentforge.TavernTalesEquipmentForge;
+import com.taverntales.equipmentforge.client.ClientLootBags;
+import com.taverntales.equipmentforge.client.CreativeOrder;
 import com.taverntales.equipmentforge.client.screen.EquipmentForgeScreen;
+import com.taverntales.equipmentforge.compat.jer.JustEnoughResourcesCompat;
+import com.taverntales.equipmentforge.lootbag.LootBagDrop;
 import com.taverntales.equipmentforge.recipe.EquipmentForgeRecipe;
+import com.taverntales.equipmentforge.registry.ModDataComponents;
 import com.taverntales.equipmentforge.registry.ModItems;
 import com.taverntales.equipmentforge.registry.ModRecipes;
 import mezz.jei.api.IModPlugin;
@@ -14,14 +19,20 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.loot.LootTable;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 @JeiPlugin
 public class EquipmentForgeJeiPlugin implements IModPlugin {
@@ -29,6 +40,9 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
     public static final RecipeType<RecipeHolder<EquipmentForgeRecipe>> EQUIPMENT_FORGE =
             RecipeType.createRecipeHolderType(
                     ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "equipment_forge"));
+
+    public static final RecipeType<LootBagDisplay> LOOT_BAG =
+            RecipeType.create(TavernTalesEquipmentForge.MODID, "loot_bag", LootBagDisplay.class);
 
     @Override
     public ResourceLocation getPluginUid() {
@@ -39,6 +53,51 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new EquipmentForgeRecipeCategory(
                 registration.getJeiHelpers().getGuiHelper(), maxMaterialCount()));
+
+        // 没有 JER 就没人能解析战利品表,整个分类不注册(而不是注册一个永远空着的分类)
+        if (JustEnoughResourcesCompat.isLoaded()) {
+            registration.addRecipeCategories(new LootBagCategory(
+                    registration.getJeiHelpers().getGuiHelper(), lootBagDisplays()));
+        }
+    }
+
+    /**
+     * 由客户端缓存(服务端同步来的表)构建展示项。JEI 启动时若同步包还没到就是空的,
+     * 稍后 {@link #onRuntimeAvailable} 注册的回调会把数据补上。
+     */
+    private static List<LootBagDisplay> lootBagDisplays() {
+        if (!JustEnoughResourcesCompat.isLoaded()) return List.of();
+        Map<String, LootTable> tables = ClientLootBags.tables();
+        // 每次重算一份:创造栏内容会随数据包/配置变化,不能缓存
+        Comparator<LootBagDrop> byDrop = dropOrder(CreativeOrder.build());
+        return tables.entrySet().stream()
+                // 按类型名排序,免得 JEI 里的顺序随 HashMap 迭代顺序乱跳
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> {
+                    List<LootBagDrop> drops = JustEnoughResourcesCompat.toDrops(e.getValue())
+                            .stream().sorted(byDrop).toList();
+                    return drops.isEmpty() ? null : new LootBagDisplay(e.getKey(), bagStack(e.getKey()), drops);
+                })
+                .filter(java.util.Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * 掉落排序:概率从大到小 → 稀有度(普通→史诗) → 创造模式物品栏顺序。
+     * 与锻造界面的排序同源(见 {@link CreativeOrder}),最后用物品 id 兜底保证顺序稳定。
+     */
+    private static Comparator<LootBagDrop> dropOrder(Map<Item, Integer> creativeOrder) {
+        return Comparator
+                .comparingDouble((LootBagDrop d) -> d.chance()).reversed()
+                .thenComparingInt(d -> d.item().getRarity().ordinal())
+                .thenComparingInt(d -> creativeOrder.getOrDefault(d.item().getItem(), Integer.MAX_VALUE))
+                .thenComparing(d -> BuiltInRegistries.ITEM.getKey(d.item().getItem()).toString());
+    }
+
+    private static ItemStack bagStack(String type) {
+        ItemStack stack = new ItemStack(ModItems.LOOT_BAG.get());
+        stack.set(ModDataComponents.LOOT_BAG_TYPE.get(), type);
+        return stack;
     }
 
     /** 已加载配方中最多的材料数,决定 JEI 分类的行数(分类尺寸无法逐配方变化);无配方时至少留一行 */
@@ -58,11 +117,29 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         registration.addRecipes(EQUIPMENT_FORGE, loadedRecipes());
+        if (JustEnoughResourcesCompat.isLoaded()) {
+            registration.addRecipes(LOOT_BAG, lootBagDisplays());
+        }
+    }
+
+    /**
+     * JEI 与袋子同步包谁先到没有保证:
+     * 同步先到 → {@link #registerRecipes} 直接就读到了;JEI 先起来 → 靠这个回调补。
+     */
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        if (!JustEnoughResourcesCompat.isLoaded()) return;
+        ClientLootBags.setUpdateListener(() ->
+                runtime.getRecipeManager().addRecipes(LOOT_BAG, lootBagDisplays()));
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ModItems.EQUIPMENT_FORGE.get()), EQUIPMENT_FORGE);
+        if (JustEnoughResourcesCompat.isLoaded()) {
+            // 空袋作为触媒:在 JEI 里查战利品袋这个物品,就能看到所有袋子的掉落
+            registration.addRecipeCatalyst(new ItemStack(ModItems.LOOT_BAG.get()), LOOT_BAG);
+        }
     }
 
     @Override

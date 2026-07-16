@@ -26,8 +26,9 @@ Minecraft **1.21.1** / **NeoForge** 模组,为 TavernTales 提供一个数据驱
 
 - **一袋一表**:袋子的种类写在物品组件里,对应一张同名的战利品表,可以给每个 Boss 配一个专属袋子。
 - **掉落物形态受保护**:免疫火焰/岩浆/爆炸,永不消失,并常亮发光轮廓(隔墙可见),适合直接扔在战场上。
-- **内容不经网络同步**:战利品表是纯服务端的,游戏内没有任何界面能查到袋子会掉什么(JEI 里也查不到)。但这**不等于保密**——表若随 mod jar 或整合包发到了玩家机器上,解压翻文件即可看到;真想藏,得把表放在服务端独有的数据包里(如服务器的 `world/datapacks/`)。
-- 没有合成配方,也不在创造物品栏里,只能通过 `/give`、命令或战利品表给予。
+- **可按种类换材质**:资源包丢一个模型文件就能让不同袋子长得不一样,零代码(见 [4.5](#45-给袋子换材质))。
+- **可在 JEI 中查看掉落**:装了 JER 后能看到每个袋子的可能掉落与概率(见 [4.6](#46-在-jei-中查看掉落))。
+- 没有合成配方。**空袋**可在创造物品栏的「原材料」分类最前面取得;**具体种类的袋子**只能通过 `/give`、命令或战利品表给予(种类由数据包定义,数量不定,创造栏不穷举)。
 
 ### 获取方式
 
@@ -46,6 +47,7 @@ Minecraft **1.21.1** / **NeoForge** 模组,为 TavernTales 提供一个数据驱
 | NeoForge `21.1.234+` | **必需** | — |
 | Minecraft `1.21.1` | **必需** | — |
 | [JEI](https://www.curseforge.com/minecraft/mc-mods/jei) `19+` | 可选(客户端) | 提供「装备锻造」配方查询分类;在锻造台界面点击 JEI 的「+」可直接跳转选中该配方 |
+| [JustEnoughResources](https://modrinth.com/mod/just-enough-resources-jer) `1.6+`(JER) | 可选(客户端) | 提供「战利品袋」分类,展示每个袋子的可能掉落与概率(见 [4.6](#46-在-jei-中查看掉落))。需同时装 JEI |
 | [Beyond Dimensions](https://modrinth.com/mod/beyonddimensions) `0.7+`(超越维度) | 可选 | 锻造时可直接消耗玩家**主网络**中存储的物品,界面的可合成判定与材料计数也会计入 |
 
 > 拼音检索所需的 pinyin4j 已通过 jarJar 打包进模组,无需额外安装。
@@ -273,7 +275,7 @@ enableDefaultRecipes = true
 
 > 因为颜色走 `§` 码,**只能用原版的 16 种颜色**,不支持 `#RRGGBB`。且每种语言的译文都要各自带上颜色码。
 >
-> "空"这个提示用的键是 `loot_bag.taverntales_4ging.taverntales_4ging_null`——之所以不叫 `.empty`,是为了给一个名字真叫 `empty` 的袋子让路。
+> "空"这个提示用的键是 `loot_bag.taverntales_4ging.null`——之所以不叫 `.empty`,是为了给一个名字真叫 `empty` 的袋子让路。
 
 ### 4.4 掉落物形态的特性
 
@@ -287,6 +289,55 @@ enableDefaultRecipes = true
 | 发光 | 常亮发光轮廓,隔墙可见 |
 
 > **唯一的例外是虚空**:掉出世界底部的物品会被直接删除,这条路径绕过了所有伤害判定,拦不住。
+
+### 4.5 给袋子换材质
+
+不同种类的袋子可以长得不一样。这件事**由资源包决定,不需要改代码,也不需要数据包配合**——往下面这个目录丢一个以类型命名的模型文件即可:
+
+```
+assets/<命名空间>/models/item/loot_bag/<类型>.json
+```
+
+例如给铁傀儡袋换皮,建 `assets/taverntales_4ging/models/item/loot_bag/iron_golem.json`:
+
+```json
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "taverntales_4ging:item/loot_bag/iron_golem"
+  }
+}
+```
+
+没有对应文件的类型(以及空袋)一律用**回退模型**,也就是模组自带的这两个文件:
+
+| 文件 | 作用 |
+| --- | --- |
+| `models/item/loot_bag.json` | 物品自身的模型。路径由物品注册名决定,**不能挪走**,内容只是一行 `parent` 指向下面那个 |
+| `models/item/loot_bag/default.json` | 回退模型的实际定义,贴图为 `textures/item/loot_bag/default.png` |
+
+> `default` 是**保留名**,不会被当作袋子类型。就算真有个叫 `default` 的袋子,它回退后用的也正是这个模型,结果一样。
+>
+> 类型名里**不能有斜杠**,`loot_bag/` 的子目录不会被扫描。
+
+**为什么是资源包说了算,而不是数据包?** 袋子类型是数据包(服务端)定义的,而模型烘焙发生在客户端资源加载时——**远早于连上服务器**,那时客户端根本不知道有哪些类型。所以只能反过来:资源包提供了哪些类型的模型,就认哪些。
+
+> 顺带一提:1.21.4 的[物品模型映射](https://zh.minecraft.wiki/w/物品模型映射)(`assets/<ns>/items/*.json` 的 `select` + `component`)原生就干这件事,纯 json 零代码。1.21.1 没有,故本模组自行实现了等效逻辑。
+
+### 4.6 在 JEI 中查看掉落
+
+装了 [JustEnoughResources](https://modrinth.com/mod/just-enough-resources-jer)(JER)后,JEI 里会多出一个「战利品袋」分类,列出每个袋子可能掉什么、概率多少、几个到几个。在 JEI 里搜战利品袋这个物品即可看到全部袋子。
+
+掉落项按**概率从大到小**排列;概率相同则按稀有度,再相同则按创造物品栏顺序。格子上的数字是**最小数量**,完整区间看 tooltip。
+
+**两个必要条件:**
+
+- **必须装 JER**(客户端)。原版没有任何公开 API 能枚举一张战利品表可能掉出什么,这套解析是 JER 提供的。没装 JER 则该分类整个不出现。
+- **必须进入世界**。战利品表是纯服务端的,客户端手里没有;模组会在登录和 `/reload` 时把袋子表同步给客户端,JEI 才有东西可显示。
+
+> ⚠️ **袋子内容会同步给所有客户端,与装没装 JER 无关。** 服务端无从得知客户端装了什么,所以一律下发;JER 只决定"显示不显示",数据本身对客户端始终可见。**这是本模组启用 JEI 展示后的既定代价**——不装 JER 只是看不到,不等于藏住了。
+>
+> ⚠️ **显示的是近似值**。权重、条件、嵌套表、`set_count` 之类的函数共同决定实际掉落,任何静态预览都做不到完全准确——带条件的条目尤其容易显示得不准。
 
 ---
 
@@ -588,36 +639,4 @@ pool[1]: rolls=1, entries=[虞美人(8), 铁块(1)] → 8/9 概率给虞美人, 
 > /loot spawn ~ ~ ~ loot taverntales_4ging:loot_bag/iron_golem
 > ```
 
-### 5.9 自带的测试袋
-
-上面的铁傀儡袋只是文档示例,**模组本体不带任何成品袋子**——袋子该有哪些、掉什么,完全交给整合包决定。
-
-模组只自带一个**测试袋**,用来验证功能是否正常,同时也是一份"活的示例":
-
-```
-/give @s taverntales_4ging:loot_bag[taverntales_4ging:loot_bag_type="taverntales_4ging_test"] 1
-```
-
-它的表 `data/taverntales_4ging/loot_table/loot_bag/taverntales_4ging_test.json` 刻意把本章讲到的东西几乎全用了一遍,每个池对应一个知识点:
-
-| 池 | 演示的东西 |
-| --- | --- |
-| 1 | 单候选必掉 + `set_count` 用 `uniform` |
-| 2 | `weight` 权重竞争 + `quality` 幸运修正 |
-| 3 | `empty` 掺空奖(10% 出钻石) |
-| 4 | `tag` 条目 + `expand: true` |
-| 5 | `alternatives` + `time_check`(夜里给火把,白天给向日葵) |
-| 6 | `group` 一次给多件 |
-| 7 | `sequence` 顺序执行至条件失败 |
-| 8 | `binomial` 抽取次数 + `bonus_rolls` |
-| 9 | `loot_table` 条目内联嵌套表 |
-| 10 | `enchant_with_levels` + `set_damage` + `set_attributes` + `set_name` |
-| 11 | `enchant_randomly` 限定附魔池 + `set_components` |
-| 12 | 池级 `conditions` + `entity_properties`(开袋玩家) |
-| 13 | `any_of` / `inverted` 组合条件 + `weather_check` |
-| 14 | `location_check` + `furnace_smelt` + `limit_count` |
-| 15 | `set_potion` + 条目级 `set_lore` |
-
-另外它在**表级**挂了一个 `set_lore`,给掉出的每一件物品都追加一行灰色的"测试袋产出"——这既演示了表级函数的作用范围,也方便你一眼认出哪些东西是这个袋子给的。
-
-正常情况下开一次约掉 12~13 件物品。如果数量明显不对,或者启动日志里出现了 `are not provided in this context`,说明有东西坏了。
+> 上面的铁傀儡袋只是**文档示例**。**模组本体不带任何成品袋子**——袋子该有哪些、掉什么、长什么样,完全交给整合包决定。模组只提供物品、参数集与那份回退模型。

@@ -1,12 +1,15 @@
 package com.taverntales.equipmentforge.network;
 
+import com.taverntales.equipmentforge.client.ClientLootBags;
 import com.taverntales.equipmentforge.compat.beyonddimensions.BeyondDimensionsCompat;
+import com.taverntales.equipmentforge.lootbag.LootBagTables;
 import com.taverntales.equipmentforge.menu.EquipmentForgeMenu;
 import com.taverntales.equipmentforge.recipe.EquipmentForgeRecipe;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -19,6 +22,26 @@ public class ModNetworking {
         PayloadRegistrar registrar = event.registrar("1");
         registrar.playToServer(CraftEquipmentPayload.TYPE, CraftEquipmentPayload.STREAM_CODEC, ModNetworking::handleCraft);
         registrar.playToClient(NetItemsPayload.TYPE, NetItemsPayload.STREAM_CODEC, ModNetworking::handleNetItems);
+        registrar.playToClient(LootBagSyncPayload.TYPE, LootBagSyncPayload.STREAM_CODEC, ModNetworking::handleLootBagSync);
+    }
+
+    /**
+     * 服务端:登录与 /reload 时把袋子表发给玩家(数据包驱动,故不能在启动时算一次了事)。
+     * 挂 OnDatapackSyncEvent 而非登录事件,是为了让 /reload 后 JEI 里的展示也跟着更新。
+     */
+    public static void onDatapackSync(final OnDatapackSyncEvent event) {
+        var payload = new LootBagSyncPayload(LootBagTables.collect(event.getPlayerList().getServer()));
+        // getPlayer() 非空表示某人刚登录,只发他;为空是 /reload,发给所有人
+        if (event.getPlayer() != null) {
+            PacketDistributor.sendToPlayer(event.getPlayer(), payload);
+        } else {
+            event.getPlayerList().getPlayers().forEach(p -> PacketDistributor.sendToPlayer(p, payload));
+        }
+    }
+
+    /** 客户端:缓存袋子表供 JEI 展示 */
+    private static void handleLootBagSync(LootBagSyncPayload payload, IPayloadContext context) {
+        ClientLootBags.accept(payload.tables());
     }
 
     /** 服务端:向玩家同步其超越维度网络的物品快照(未装 BD 时不发送) */
