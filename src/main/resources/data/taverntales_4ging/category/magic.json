@@ -5,8 +5,8 @@
     }
   ],
   "name": {
-    "translate": "taverntales_4ging.category.magic"
+    "translate": "category.taverntales_4ging.magic"
   },
   "order": 2,
-  "icon": "minecraft:book"
+  "icon": "minecraft:knowledge_book"
 }

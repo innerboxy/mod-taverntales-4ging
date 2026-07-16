@@ -5,7 +5,9 @@ import com.taverntales.equipmentforge.config.Config;
 import com.taverntales.equipmentforge.network.ModNetworking;
 import com.taverntales.equipmentforge.registry.ModBlocks;
 import com.taverntales.equipmentforge.registry.ModConditions;
+import com.taverntales.equipmentforge.registry.ModDataComponents;
 import com.taverntales.equipmentforge.registry.ModItems;
+import com.taverntales.equipmentforge.registry.ModLootContextParamSets;
 import com.taverntales.equipmentforge.registry.ModMenus;
 import com.taverntales.equipmentforge.registry.ModRecipes;
 import com.taverntales.equipmentforge.registry.ModRegistries;
@@ -29,9 +31,13 @@ public class TavernTalesEquipmentForge {
         ModRecipes.RECIPE_TYPES.register(modEventBus);
         ModRecipes.RECIPE_SERIALIZERS.register(modEventBus);
         ModConditions.CONDITION_CODECS.register(modEventBus);
+        ModDataComponents.COMPONENTS.register(modEventBus);
         modEventBus.addListener(ModNetworking::register);
         modEventBus.addListener(ModRegistries::register);
         modEventBus.addListener(this::addCreative);
+
+        // 战利品袋的战利品表参数集:没有注册表事件可挂,构造器里直接写静态表,赶在数据包加载之前
+        ModLootContextParamSets.register();
 
         // 通用配置:控制是否移除原版木质配方
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);

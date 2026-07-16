@@ -97,12 +97,12 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     /** 16x16 图标在标签内的留白,随 TAB_SIZE 自动居中 */
     private static final int TAB_ICON_INSET = (TAB_SIZE - 16) / 2;
 
-    private static final Component MATERIALS_LABEL = Component.translatable("taverntales_4ging.gui.materials");
-    private static final Component CRAFT_LABEL = Component.translatable("taverntales_4ging.gui.craft");
-    private static final Component SEARCH_HINT = Component.translatable("taverntales_4ging.gui.search");
-    private static final Component SELECT_HINT = Component.translatable("taverntales_4ging.gui.select_hint");
-    private static final Component FILTER_ALL_LABEL = Component.translatable("taverntales_4ging.gui.filter_all");
-    private static final Component FILTER_CRAFTABLE_LABEL = Component.translatable("taverntales_4ging.gui.filter_craftable");
+    private static final Component MATERIALS_LABEL = Component.translatable("gui.taverntales_4ging.materials");
+    private static final Component CRAFT_LABEL = Component.translatable("gui.taverntales_4ging.craft");
+    private static final Component SEARCH_HINT = Component.translatable("gui.taverntales_4ging.search");
+    private static final Component SELECT_HINT = Component.translatable("gui.taverntales_4ging.select_hint");
+    private static final Component FILTER_ALL_LABEL = Component.translatable("gui.taverntales_4ging.filter_all");
+    private static final Component FILTER_CRAFTABLE_LABEL = Component.translatable("gui.taverntales_4ging.filter_craftable");
 
     private static final ResourceLocation BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge_button.png");
@@ -138,7 +138,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
 
     /** 内置"全部"标签的翻译名与图标 */
-    private static final Component ALL_LABEL = Component.translatable("taverntales_4ging.category.all");
+    private static final Component ALL_LABEL = Component.translatable("category.taverntales_4ging.all");
     private static final ItemStack ALL_ICON = new ItemStack(Items.COMPASS);
 
     /**
@@ -148,7 +148,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final Map<ResourceLocation, Item> FALLBACK_ICONS = Map.of(
             categoryId("melee"), Items.IRON_SWORD,
             categoryId("ranged"), Items.BOW,
-            categoryId("magic"), Items.BOOK,
+            categoryId("magic"), Items.KNOWLEDGE_BOOK,
             categoryId("tool"), Items.DIAMOND_PICKAXE,
             categoryId("armor"), Items.GOLDEN_CHESTPLATE,
             categoryId("shield"), Items.SHIELD,

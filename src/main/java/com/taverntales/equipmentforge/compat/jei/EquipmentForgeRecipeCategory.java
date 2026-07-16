@@ -42,14 +42,14 @@ public class EquipmentForgeRecipeCategory extends AbstractRecipeCategory<RecipeH
     private static final int WIDTH = 96;
 
     private static final Component MATERIALS_LABEL =
-            Component.translatable("taverntales_4ging.gui.materials");
+            Component.translatable("gui.taverntales_4ging.materials");
 
     private final int rows;
 
     /** @param maxMaterials 所有已加载配方中最多的材料数,用于决定分类高度 */
     public EquipmentForgeRecipeCategory(IGuiHelper guiHelper, int maxMaterials) {
         super(EquipmentForgeJeiPlugin.EQUIPMENT_FORGE,
-                Component.translatable("taverntales_4ging.jei.equipment_forge"),
+                Component.translatable("jei.taverntales_4ging.equipment_forge"),
                 guiHelper.createDrawableItemLike(ModBlocks.EQUIPMENT_FORGE.get()),
                 WIDTH, heightFor(maxMaterials));
         this.rows = rowsFor(maxMaterials);

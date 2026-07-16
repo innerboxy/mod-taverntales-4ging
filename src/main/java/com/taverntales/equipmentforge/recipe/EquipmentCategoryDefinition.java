@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
  * <pre>
  * data/&lt;命名空间&gt;/category/melee.json
  * {
- *   "name": { "translate": "taverntales_4ging.category.melee" },
+ *   "name": { "translate": "category.taverntales_4ging.melee" },
  *   "order": 0,                          // 可选,默认 0
  *   "icon": "minecraft:iron_sword"       // 可选,默认 minecraft:book
  * }

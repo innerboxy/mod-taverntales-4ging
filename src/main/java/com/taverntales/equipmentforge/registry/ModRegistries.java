@@ -14,7 +14,7 @@ public class ModRegistries {
     public static final ResourceKey<Registry<EquipmentCategoryDefinition>> EQUIPMENT_CATEGORY =
             ResourceKey.createRegistryKey(ResourceLocation.withDefaultNamespace("category"));
 
-    /** 传入网络编解码器,使分类定义随登录同步到客户端(标签渲染需要) */
+    /** 传入网络编解码器,使定义随登录同步到客户端(标签渲染 / 物品 tooltip 需要) */
     public static void register(DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(EQUIPMENT_CATEGORY,
                 EquipmentCategoryDefinition.CODEC, EquipmentCategoryDefinition.CODEC);
