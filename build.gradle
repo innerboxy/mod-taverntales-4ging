@@ -21,7 +21,9 @@ repositories {
 }
 
 base {
-    archivesName = mod_id
+    // Modrinth 社区惯例:文件名带上加载器与 MC 版本,便于玩家辨认。
+    // 结合 version = mod_version,产物为 <mod_id>-neoforge-<mc>-<mod_version>.jar
+    archivesName = "${mod_id}-neoforge-${minecraft_version}"
 }
 
 // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
