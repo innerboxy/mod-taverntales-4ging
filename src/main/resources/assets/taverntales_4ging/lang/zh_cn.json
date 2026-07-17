@@ -9,6 +9,7 @@
   "gui.taverntales_4ging.filter_all": "显示全部",
   "gui.taverntales_4ging.filter_craftable": "仅显示可合成",
   "jei.taverntales_4ging.equipment_forge": "装备锻造",
+  "jei.taverntales_4ging.category": "所属分类: %s",
   "jei.taverntales_4ging.loot_bag": "战利品袋",
   "jei.taverntales_4ging.loot_bag.chance": "概率: %s%%",
   "jei.taverntales_4ging.loot_bag.count": "数量: %s",

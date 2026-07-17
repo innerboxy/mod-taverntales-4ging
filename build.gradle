@@ -80,7 +80,7 @@ dependencies {
 
     // 超越维度:软依赖;运行时通过 ModList 探测,未安装时联动代码不加载。runtimeOnly 仅供开发环境测试联动
     compileOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
-    runtimeOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
+    // runtimeOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
 
     // JustEnoughResources:软依赖,用于在 JEI 中展示战利品袋掉落。JER 没有单独的 api 构件,
     // 故 compileOnly 整个模组。注意 jer_version 是 Modrinth 版本 ID,不是版本号,原因见 gradle.properties

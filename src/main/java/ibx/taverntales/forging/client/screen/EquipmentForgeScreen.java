@@ -59,7 +59,10 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     /** 制作按钮:20x20 方形贴图按钮,底边对齐装备格底边;按钮 + 右侧制作物品图标整体在右栏居中 */
     private static final int BUTTON_WIDTH = 20;
     private static final int BUTTON_HEIGHT = 20;
-    private static final int BUTTON_ICON_GAP = 16;
+    private static final int BUTTON_ICON_GAP = 24;
+    /** 按钮与产物图标之间的制作箭头(程序绘制),在间隙内居中 */
+    private static final int CRAFT_ARROW_W = 14;
+    private static final int CRAFT_ARROW_H = 9;
     private static final int BUTTON_X = RIGHT_X + (RIGHT_WIDTH - BUTTON_WIDTH - BUTTON_ICON_GAP - 16) / 2;
     private static final int BUTTON_Y = GRID_Y + GRID_ROWS * CELL + 1 - BUTTON_HEIGHT;
 
@@ -96,6 +99,15 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final int TAB_Y0 = 3;
     /** 16x16 图标在标签内的留白,随 TAB_SIZE 自动居中 */
     private static final int TAB_ICON_INSET = (TAB_SIZE - 16) / 2;
+    /** 不分页时最多显示的标签数,超出后进入分页模式(参考创造物品栏翻页) */
+    private static final int MAX_VISIBLE_TABS = 6;
+    /** 分页模式下每页的标签数:"全部"钉在顶部不参与翻页,故比 MAX_VISIBLE_TABS 少 1 */
+    private static final int TAB_PAGE_SIZE = MAX_VISIBLE_TABS - 1;
+    /** 翻页按钮尺寸:比标签窄,在标签列内水平居中 */
+    private static final int TAB_PAGE_BTN_W = 14;
+    private static final int TAB_PAGE_BTN_H = 10;
+    /** 翻页按钮相对标签列左缘的水平偏移(居中) */
+    private static final int TAB_PAGE_BTN_X = (TAB_SIZE - TAB_PAGE_BTN_W) / 2;
 
     private static final Component MATERIALS_LABEL = Component.translatable("gui.taverntales_4ging.materials");
     private static final Component CRAFT_LABEL = Component.translatable("gui.taverntales_4ging.craft");
@@ -163,6 +175,8 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     /** 标签列表:内置"全部"置顶,其余由数据包注册表驱动,init 时构建 */
     private List<CategoryTab> tabs = List.of();
+    /** 标签当前页(每页 MAX_VISIBLE_TABS 个),标签总数不超过一页时恒为 0 */
+    private int tabPage;
 
     /** 当前选中的分类 id,null 表示"全部" */
     private ResourceLocation activeCategory;
@@ -198,9 +212,9 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     protected void init() {
         super.init();
 
-        // 搜索框缩短,给右侧的可合成过滤开关留出位置
-        searchBox = new EditBox(font, leftPos + GRID_X + 1, topPos + 8,
-                GRID_COLS * CELL - FILTER_W - 6, 14, SEARCH_HINT);
+        // 搜索框:左缘与下方装备格嵌板对齐,右侧距可合成过滤开关 3px
+        searchBox = new EditBox(font, leftPos + GRID_X - 1, topPos + 8,
+                FILTER_X - 3 - (GRID_X - 1), 14, SEARCH_HINT);
         searchBox.setHint(SEARCH_HINT);
         searchBox.setResponder(text -> refreshFiltered());
         addRenderableWidget(searchBox);
@@ -247,12 +261,74 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
                         .forEach(e -> {
                             EquipmentCategoryDefinition def = e.getValue();
                             ResourceLocation id = e.getKey().location();
-                            // icon 物品不存在(如未装对应模组)时,用硬编码的回退图标
-                            Item icon = existingItem(def.icon())
-                                    .orElseGet(() -> FALLBACK_ICONS.getOrDefault(id, Items.BOOK));
-                            list.add(new CategoryTab(id, new ItemStack(icon), def.name()));
+                            list.add(new CategoryTab(id, categoryIcon(id, def), def.name()));
                         }));
         tabs = List.copyOf(list);
+        tabPage = Math.max(0, Math.min(tabPage, tabPageCount() - 1));
+    }
+
+    /** 标签是否多到需要分页 */
+    private boolean tabsPaged() {
+        return tabs.size() > MAX_VISIBLE_TABS;
+    }
+
+    private int tabPageCount() {
+        // "全部"不参与翻页,其余标签按每页 TAB_PAGE_SIZE 个分页
+        if (!tabsPaged()) return 1;
+        return (tabs.size() - 1 + TAB_PAGE_SIZE - 1) / TAB_PAGE_SIZE;
+    }
+
+    /** 上翻按钮的 y(相对 topPos):紧跟在钉住的"全部"标签之下 */
+    private int tabUpButtonY() {
+        return TAB_Y0 + TAB_SIZE + TAB_GAP;
+    }
+
+    /** 分页标签列表的起始 y(相对 topPos):上翻按钮之下 */
+    private int tabListY0() {
+        return tabsPaged() ? tabUpButtonY() + TAB_PAGE_BTN_H + TAB_GAP : TAB_Y0;
+    }
+
+    /** 最后一个分页标签位的底边 y(相对 topPos) */
+    private int tabListBottom() {
+        return tabListY0() + TAB_PAGE_SIZE * (TAB_SIZE + TAB_GAP) - TAB_GAP;
+    }
+
+    /** 页码文字(如 1/2)的 y(相对 topPos):居中于最后一个标签位与下翻按钮之间 */
+    private int tabPageLabelY() {
+        return tabListBottom() + 4;
+    }
+
+    /** 下翻按钮的 y(相对 topPos):固定位置,末页不满时也不上移(数字字形高 7px,上下各留 4px 与页码居中) */
+    private int tabDownButtonY() {
+        return tabPageLabelY() + 7 + 4;
+    }
+
+    /** 翻页,dir 为 -1 上翻、+1 下翻;已在边界翻不动时返回 false */
+    private boolean turnTabPage(int dir) {
+        int page = Math.max(0, Math.min(tabPageCount() - 1, tabPage + dir));
+        if (page == tabPage) return false;
+        tabPage = page;
+        return true;
+    }
+
+    /** 让当前选中分类所在的标签页可见("全部"钉在顶部,任何页都可见,无需跳页) */
+    private void ensureActiveTabVisible() {
+        for (int i = 1; i < tabs.size(); i++) {
+            if (java.util.Objects.equals(tabs.get(i).category(), activeCategory)) {
+                tabPage = (i - 1) / TAB_PAGE_SIZE;
+                return;
+            }
+        }
+    }
+
+    /**
+     * 分类的展示图标:icon 物品不存在(如未装对应模组)时用内置回退表,未登记的分类兜底书本。
+     * 供锻造界面标签与 JEI 分类角标共用。
+     */
+    public static ItemStack categoryIcon(ResourceLocation id, EquipmentCategoryDefinition def) {
+        Item icon = existingItem(def.icon())
+                .orElseGet(() -> FALLBACK_ICONS.getOrDefault(id, Items.BOOK));
+        return new ItemStack(icon);
     }
 
     /** 注册表中存在且非空气的物品 */
@@ -338,6 +414,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             ResourceLocation cat = holder.value().category();
             boolean hasTab = tabs.stream().anyMatch(t -> cat.equals(t.category()));
             activeCategory = hasTab ? cat : null;
+            ensureActiveTabVisible();
             refreshFiltered();
             int idx = filtered.indexOf(holder);
             if (idx >= 0) {
@@ -439,37 +516,99 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
                 && mouseY >= topPos + CLEAR_Y && mouseY < topPos + CLEAR_Y + CLEAR_SIZE;
     }
 
-    /** 左侧竖排分类子标签,选中的标签与主面板连成一体 */
+    /** 左侧竖排分类子标签,选中的标签与主面板连成一体;分页时"全部"钉在顶部,上下出现翻页按钮 */
     private void renderTabs(GuiGraphics guiGraphics) {
-        for (int i = 0; i < tabs.size(); i++) {
-            CategoryTab tab = tabs.get(i);
-            boolean active = java.util.Objects.equals(tab.category(), activeCategory);
-            int x = leftPos - TAB_SIZE;
-            int y = topPos + TAB_Y0 + i * (TAB_SIZE + TAB_GAP);
-            // 多画 1px 盖住主面板左边框,使标签看起来贴在面板上
-            drawPanel(guiGraphics, x, y, TAB_SIZE + 1, TAB_SIZE, active ? 0xFFC6C6C6 : 0xFF8B8B8B);
-            if (active) {
-                // 抹掉标签右边框,与主面板打通
-                guiGraphics.fill(leftPos, y + 1, leftPos + 1, y + TAB_SIZE - 1, 0xFFC6C6C6);
+        if (!tabsPaged()) {
+            for (int i = 0; i < tabs.size(); i++) {
+                renderTab(guiGraphics, tabs.get(i), topPos + TAB_Y0 + i * (TAB_SIZE + TAB_GAP));
             }
-            guiGraphics.renderItem(tab.icon(), x + TAB_ICON_INSET, y + TAB_ICON_INSET);
+            return;
         }
+        // "全部"钉在顶部,不随翻页移动
+        renderTab(guiGraphics, tabs.get(0), topPos + TAB_Y0);
+        int first = 1 + tabPage * TAB_PAGE_SIZE;
+        int count = Math.min(TAB_PAGE_SIZE, tabs.size() - first);
+        for (int row = 0; row < count; row++) {
+            renderTab(guiGraphics, tabs.get(first + row), topPos + tabListY0() + row * (TAB_SIZE + TAB_GAP));
+        }
+        // 页码,在下翻按钮上方,标签列内水平居中
+        String pageLabel = (tabPage + 1) + "/" + tabPageCount();
+        guiGraphics.drawString(font, pageLabel,
+                leftPos - TAB_SIZE + (TAB_SIZE - font.width(pageLabel)) / 2,
+                topPos + tabPageLabelY(), 0xFFFFFFFF, true);
+        // 翻页按钮常驻,到达边界时点击只响声音不翻页
+        renderTabPageButton(guiGraphics, topPos + tabUpButtonY(), ARROW_UP_TEXTURE);
+        renderTabPageButton(guiGraphics, topPos + tabDownButtonY(), ARROW_DOWN_TEXTURE);
     }
 
-    /** 分类标签占用的额外屏幕区域,供 JEI 等覆盖层避让 */
+    private void renderTab(GuiGraphics guiGraphics, CategoryTab tab, int y) {
+        boolean active = java.util.Objects.equals(tab.category(), activeCategory);
+        int x = leftPos - TAB_SIZE;
+        // 多画 1px 盖住主面板左边框,使标签看起来贴在面板上
+        drawPanel(guiGraphics, x, y, TAB_SIZE + 1, TAB_SIZE, active ? 0xFFC6C6C6 : 0xFF8B8B8B);
+        if (active) {
+            // 抹掉标签右边框,与主面板打通
+            guiGraphics.fill(leftPos, y + 1, leftPos + 1, y + TAB_SIZE - 1, 0xFFC6C6C6);
+        }
+        guiGraphics.renderItem(tab.icon(), x + TAB_ICON_INSET, y + TAB_ICON_INSET);
+    }
+
+    /** 标签列的翻页按钮:比标签窄,在标签列内水平居中 */
+    private void renderTabPageButton(GuiGraphics guiGraphics, int y, ResourceLocation arrow) {
+        int x = leftPos - TAB_SIZE + TAB_PAGE_BTN_X;
+        drawPanel(guiGraphics, x, y, TAB_PAGE_BTN_W, TAB_PAGE_BTN_H, 0xFF8B8B8B);
+        guiGraphics.blit(arrow, x + (TAB_PAGE_BTN_W - ARROW_W) / 2, y + (TAB_PAGE_BTN_H - ARROW_H) / 2,
+                0, 0, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
+    }
+
+    /** 分类标签占用的额外屏幕区域(分页时含上下翻页按钮),供 JEI 等覆盖层避让 */
     public Rect2i getTabArea() {
-        return new Rect2i(leftPos - TAB_SIZE, topPos + TAB_Y0,
-                TAB_SIZE + 1, tabs.size() * (TAB_SIZE + TAB_GAP) - TAB_GAP);
+        int height = tabsPaged()
+                ? tabDownButtonY() + TAB_PAGE_BTN_H - TAB_Y0
+                : tabs.size() * (TAB_SIZE + TAB_GAP) - TAB_GAP;
+        return new Rect2i(leftPos - TAB_SIZE, topPos + TAB_Y0, TAB_SIZE + 1, height);
     }
 
-    /** 鼠标所在的分类标签下标,不在标签上返回 -1 */
+    /** 鼠标所在的分类标签下标(tabs 中的绝对下标),不在标签上返回 -1 */
     private int tabIndexAt(double mouseX, double mouseY) {
         int gx = (int) (mouseX - (leftPos - TAB_SIZE));
         if (gx < 0 || gx >= TAB_SIZE) return -1;
-        int gy = (int) (mouseY - (topPos + TAB_Y0));
+        if (!tabsPaged()) {
+            int gy = (int) (mouseY - (topPos + TAB_Y0));
+            if (gy < 0 || gy % (TAB_SIZE + TAB_GAP) >= TAB_SIZE) return -1;
+            int index = gy / (TAB_SIZE + TAB_GAP);
+            return index < tabs.size() ? index : -1;
+        }
+        // 钉在顶部的"全部"
+        int gy0 = (int) (mouseY - (topPos + TAB_Y0));
+        if (gy0 >= 0 && gy0 < TAB_SIZE) return 0;
+        int gy = (int) (mouseY - (topPos + tabListY0()));
         if (gy < 0 || gy % (TAB_SIZE + TAB_GAP) >= TAB_SIZE) return -1;
-        int index = gy / (TAB_SIZE + TAB_GAP);
+        int row = gy / (TAB_SIZE + TAB_GAP);
+        if (row >= TAB_PAGE_SIZE) return -1;
+        int index = 1 + tabPage * TAB_PAGE_SIZE + row;
         return index < tabs.size() ? index : -1;
+    }
+
+    /** 鼠标是否在标签列区域内(含翻页按钮) */
+    private boolean isOverTabArea(double mouseX, double mouseY) {
+        Rect2i area = getTabArea();
+        return mouseX >= area.getX() && mouseX < area.getX() + area.getWidth()
+                && mouseY >= area.getY() && mouseY < area.getY() + area.getHeight();
+    }
+
+    /** 鼠标所在的翻页按钮:-1 上翻,1 下翻,不在按钮上返回 0 */
+    private int tabPageButtonAt(double mouseX, double mouseY) {
+        if (!tabsPaged()) return 0;
+        int gx = (int) (mouseX - (leftPos - TAB_SIZE + TAB_PAGE_BTN_X));
+        if (gx < 0 || gx >= TAB_PAGE_BTN_W) return 0;
+        if (mouseY >= topPos + tabUpButtonY() && mouseY < topPos + tabUpButtonY() + TAB_PAGE_BTN_H) {
+            return -1;
+        }
+        if (mouseY >= topPos + tabDownButtonY() && mouseY < topPos + tabDownButtonY() + TAB_PAGE_BTN_H) {
+            return 1;
+        }
+        return 0;
     }
 
     private static void drawPanel(GuiGraphics g, int x, int y, int w, int h, int fill) {
@@ -492,10 +631,21 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         // 与搜索框(y=8,高 14)垂直居中对齐
         guiGraphics.drawString(font, MATERIALS_LABEL, RIGHT_X, 11, 0xFF404040, false);
-        // 选中配方时,在制作按钮右侧展示将要制作的物品
+        // 选中配方时,在制作按钮右侧展示指示箭头和将要制作的物品
         if (selected != null) {
+            drawCraftArrow(guiGraphics,
+                    BUTTON_X + BUTTON_WIDTH + (BUTTON_ICON_GAP - CRAFT_ARROW_W) / 2,
+                    BUTTON_Y + (BUTTON_HEIGHT - CRAFT_ARROW_H) / 2);
             ItemStack result = selected.value().getResultItem(minecraft.level.registryAccess());
             guiGraphics.renderItem(result, BUTTON_X + BUTTON_WIDTH + BUTTON_ICON_GAP, BUTTON_Y + 2);
+        }
+    }
+
+    /** 原版风格的制作箭头:9px 长的箭杆 + 逐列收窄的箭头,纯色程序绘制 */
+    private static void drawCraftArrow(GuiGraphics g, int x, int y) {
+        g.fill(x, y + 3, x + 9, y + 6, 0xFF8B8B8B);
+        for (int i = 0; i < 5; i++) {
+            g.fill(x + 9 + i, y + i, x + 10 + i, y + CRAFT_ARROW_H - i, 0xFF8B8B8B);
         }
     }
 
@@ -670,6 +820,13 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
                 minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f));
                 return true;
             }
+            int pageDir = tabPageButtonAt(mouseX, mouseY);
+            if (pageDir != 0) {
+                // 边界处翻不动也响声音,给出按钮被点到的反馈
+                turnTabPage(pageDir);
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f));
+                return true;
+            }
             int tab = tabIndexAt(mouseX, mouseY);
             if (tab >= 0) {
                 activeCategory = tabs.get(tab).category();
@@ -693,6 +850,13 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         // 仅在物品格区域内滚动翻页,避免影响背包区域
         if (gridIndexAt(mouseX, mouseY) >= 0) {
             scrollRow = Math.max(0, Math.min(maxScrollRow(), scrollRow - (int) Math.signum(scrollY)));
+            return true;
+        }
+        // 标签列:分页时滚轮直接翻页,翻动了才响声音(边界处静默,避免滚轮连响)
+        if (tabsPaged() && isOverTabArea(mouseX, mouseY)) {
+            if (turnTabPage(-(int) Math.signum(scrollY))) {
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0f));
+            }
             return true;
         }
         // 右侧材料框:材料多于可见行数时同样支持滚动
