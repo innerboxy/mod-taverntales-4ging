@@ -65,7 +65,7 @@ Minecraft **1.21.1** / **NeoForge** 模组,为 TavernTales 提供一个数据驱
 removeVanillaRecipes = true
 #加载模组自带的默认分类标签(近战/远程/魔法/工具/盔甲/盾牌/饰品)。
 enableDefaultCategories = true
-#加载模组自带的默认锻造配方(木/石/铁/金/钻石/下界合金装备、弓弩、盾牌等)。
+#加载模组自带的默认锻造配方(木/石/铜/铁/金/钻石/下界合金装备、矛、弓弩、盾牌等)。
 enableDefaultRecipes = true
 ```
 
@@ -84,7 +84,7 @@ enableDefaultRecipes = true
 
 **`removeVanillaRecipes`**
 
-- 开启时,以下原版配方会被移除:木/石/铁/金/钻石各阶的工具与剑、盾牌、弓、弩、重锤、皮革/铁/金/钻石套装、海龟壳,以及**下界合金装备的锻造台升级(smithing)配方**。
+- 开启时,以下原版配方会被移除:木/石/铜/铁/金/钻石各阶的工具、剑与矛、盾牌、弓、弩、重锤、皮革/铜/铁/金/钻石套装、海龟壳,以及**下界合金装备(含下界合金矛)的锻造台升级(smithing)配方**。
 - 关闭时,以上原版配方全部恢复,锻造台配方仍然可用(即两种途径并存)。
 
 **`enableDefaultCategories`**
@@ -94,7 +94,7 @@ enableDefaultRecipes = true
 
 **`enableDefaultRecipes`**
 
-- 关闭后,模组自带的 61 个锻造配方不再加载,可由数据包自行定义整套配方表。
+- 关闭后,模组自带的 77 个锻造配方不再加载,可由数据包自行定义整套配方表。
 - **不影响装备锻造台方块自身的合成配方**(该方块始终可合成)。
 - 也不影响 `removeVanillaRecipes`——如需同时恢复原版配方,请另行关闭它。
 
@@ -114,8 +114,8 @@ enableDefaultRecipes = true
   "type": "taverntales_4ging:equipment_forge",
   "category": "taverntales_4ging:melee",
   "materials": [
-    { "tag": "minecraft:planks", "count": 2 },
-    { "item": "minecraft:diamond", "count": 3 }
+    { "ingredient": "#minecraft:planks", "count": 2 },
+    { "ingredient": "minecraft:diamond", "count": 3 }
   ],
   "result": { "id": "minecraft:diamond_sword", "count": 1 }
 }
@@ -124,7 +124,7 @@ enableDefaultRecipes = true
 | 字段 | 必填 | 说明 |
 | --- | --- | --- |
 | `category` | 是 | 分类 id,**必须写完整命名空间**(如 `taverntales_4ging:melee`)。引用了未定义的分类时,该配方只会出现在「全部」标签中,并打印一条调试日志。 |
-| `materials` | 是 | 材料列表。每项为 `{ "item": <物品id> }` 或 `{ "tag": <标签id> }`,配合 `count`(默认 1)。数量指**所需总数**,与摆放形状无关。 |
+| `materials` | 是 | 材料列表,每项为 NeoForge 的 `{ "ingredient": <原版 ingredient>, "count": <数量> }`(`count` 默认 1)。`ingredient` 写物品 id(`"minecraft:diamond"`)、带 `#` 的标签(`"#minecraft:planks"`)或它们组成的数组。数量指**所需总数**,与摆放形状无关。<br>旧版的 `{ "item": <物品id> }` / `{ "tag": <标签id> }` 写法仍可读取,新数据包建议改用 `ingredient`。 |
 | `result` | 是 | 产物,`{ "id": <物品id>, "count": <数量> }`。 |
 
 > 材料按列表顺序无关紧要——界面会自动按稀有度、创造物品栏顺序重新排序显示。
@@ -175,7 +175,7 @@ enableDefaultRecipes = true
 | 条件 id | 返回 `true` 的时机 | 用在哪 |
 | --- | --- | --- |
 | `taverntales_4ging:vanilla_recipe_enabled` | `removeVanillaRecipes = false` 时 | 模组对原版配方的覆盖文件 |
-| `taverntales_4ging:default_recipes_enabled` | `enableDefaultRecipes = true` 时 | 模组自带的 61 个锻造配方 |
+| `taverntales_4ging:default_recipes_enabled` | `enableDefaultRecipes = true` 时 | 模组自带的 77 个锻造配方 |
 | `taverntales_4ging:default_categories_enabled` | `enableDefaultCategories = true` 时 | 模组自带的 7 个分类定义 |
 
 > 条件不仅能用在配方上——NeoForge 给数据包注册表也接上了条件解析,所以分类定义(3.2)同样支持 `neoforge:conditions`。
@@ -194,18 +194,18 @@ enableDefaultRecipes = true
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "#": { "item": "minecraft:stick" },
-    "X": { "tag": "minecraft:planks" }
+    "#": "#c:rods/wooden",
+    "X": "#minecraft:wooden_tool_materials"
   },
   "pattern": ["X", "X", "#"],
-  "result": { "count": 1, "id": "minecraft:wooden_sword" }
+  "result": { "id": "minecraft:wooden_sword" }
 }
 ```
 
 放到 `data/minecraft/recipe/wooden_sword.json` 即可覆盖原版木剑配方。该条件对任意配方类型都适用(本模组也用它覆盖了下界合金的 `smithing_transform` 配方)。
 
 > 新增锻造配方时,若希望同时移除对应的原版配方,照此覆盖一份即可复用同一个配置开关。
-> 原版配方的原文可从 `neoforge-<版本>-client-extra-*.jar` 的 `data/minecraft/recipe/` 中提取。
+> 原版配方的原文可从 `data/minecraft/recipe/` 中提取:NeoForge 改写过的(如把木棍换成 `#c:rods/wooden`)在 `neoforge-<版本>-universal.jar` 里,其余在 Minecraft 本体 jar 里。覆盖时应以 NeoForge 改写版为准。
 
 ---
 

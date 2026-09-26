@@ -8,7 +8,7 @@
   "category": "taverntales_4ging:armor",
   "materials": [
     {
-      "item": "minecraft:diamond",
+      "ingredient": "minecraft:diamond",
       "count": 4
     }
   ],

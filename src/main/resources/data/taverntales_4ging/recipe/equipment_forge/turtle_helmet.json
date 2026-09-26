@@ -8,7 +8,7 @@
   "category": "taverntales_4ging:armor",
   "materials": [
     {
-      "item": "minecraft:turtle_scute",
+      "ingredient": "minecraft:turtle_scute",
       "count": 5
     }
   ],

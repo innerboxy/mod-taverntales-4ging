@@ -8,15 +8,15 @@
   "category": "taverntales_4ging:ranged",
   "materials": [
     {
-      "tag": "minecraft:planks",
+      "ingredient": "#minecraft:planks",
       "count": 3
     },
     {
-      "item": "minecraft:iron_ingot",
+      "ingredient": "minecraft:iron_ingot",
       "count": 2
     },
     {
-      "item": "minecraft:string",
+      "ingredient": "minecraft:string",
       "count": 2
     }
   ],

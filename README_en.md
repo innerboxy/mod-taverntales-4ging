@@ -63,7 +63,7 @@ The config type is **COMMON**, located at `config/taverntales_4ging-common.toml`
 removeVanillaRecipes = true
 #Load the mod's built-in default category tabs (melee/ranged/magic/tool/armor/shield/curio).
 enableDefaultCategories = true
-#Load the mod's built-in default forge recipes (wood/stone/iron/gold/diamond/netherite gear, bow & crossbow, shield, etc.).
+#Load the mod's built-in default forge recipes (wood/stone/copper/iron/gold/diamond/netherite gear, spears, bow & crossbow, shield, etc.).
 enableDefaultRecipes = true
 ```
 
@@ -82,7 +82,7 @@ enableDefaultRecipes = true
 
 **`removeVanillaRecipes`**
 
-- When enabled, the following vanilla recipes are removed: the tools & swords of every tier (wood/stone/iron/gold/diamond), shield, bow, crossbow, mace, leather/iron/gold/diamond armor sets, turtle shell, and the **smithing upgrade recipes for netherite gear**.
+- When enabled, the following vanilla recipes are removed: the tools, swords & spears of every tier (wood/stone/copper/iron/gold/diamond), shield, bow, crossbow, mace, leather/copper/iron/gold/diamond armor sets, turtle shell, and the **smithing upgrade recipes for netherite gear (including the netherite spear)**.
 - When disabled, all of the above vanilla recipes are restored, and the forge recipes still work (i.e. both paths coexist).
 
 **`enableDefaultCategories`**
@@ -92,7 +92,7 @@ enableDefaultRecipes = true
 
 **`enableDefaultRecipes`**
 
-- When disabled, the mod's 61 built-in forge recipes are no longer loaded, and the whole recipe set can be defined by the data pack.
+- When disabled, the mod's 77 built-in forge recipes are no longer loaded, and the whole recipe set can be defined by the data pack.
 - **Does not affect the Equipment Forge block's own crafting recipe** (the block is always craftable).
 - Also does not affect `removeVanillaRecipes` — to restore vanilla recipes at the same time, turn that off separately.
 
@@ -112,8 +112,8 @@ The mod involves three kinds of data files, which modpacks can override or add t
   "type": "taverntales_4ging:equipment_forge",
   "category": "taverntales_4ging:melee",
   "materials": [
-    { "tag": "minecraft:planks", "count": 2 },
-    { "item": "minecraft:diamond", "count": 3 }
+    { "ingredient": "#minecraft:planks", "count": 2 },
+    { "ingredient": "minecraft:diamond", "count": 3 }
   ],
   "result": { "id": "minecraft:diamond_sword", "count": 1 }
 }
@@ -122,7 +122,7 @@ The mod involves three kinds of data files, which modpacks can override or add t
 | Field | Required | Description |
 | --- | --- | --- |
 | `category` | Yes | Category id, **must include the full namespace** (e.g. `taverntales_4ging:melee`). If it references an undefined category, the recipe only appears under the "All" tab and a debug log line is printed. |
-| `materials` | Yes | Material list. Each entry is `{ "item": <item id> }` or `{ "tag": <tag id> }`, with `count` (default 1). The count is the **total amount required**, unrelated to any placement shape. |
+| `materials` | Yes | Material list. Each entry is NeoForge's `{ "ingredient": <vanilla ingredient>, "count": <amount> }` (`count` defaults to 1). `ingredient` is an item id (`"minecraft:diamond"`), a `#`-prefixed tag (`"#minecraft:planks"`), or an array of those. The count is the **total amount required**, unrelated to any placement shape.<br>The legacy `{ "item": <item id> }` / `{ "tag": <tag id> }` form is still accepted, but new data packs should use `ingredient`. |
 | `result` | Yes | The product, `{ "id": <item id>, "count": <amount> }`. |
 
 > The order of materials doesn't matter — the UI re-sorts them by rarity and creative-inventory order for display.
@@ -173,7 +173,7 @@ The mod registers three data-pack conditions, one per config option. NeoForge's 
 | Condition id | When it returns `true` | Used on |
 | --- | --- | --- |
 | `taverntales_4ging:vanilla_recipe_enabled` | When `removeVanillaRecipes = false` | The mod's override files for vanilla recipes |
-| `taverntales_4ging:default_recipes_enabled` | When `enableDefaultRecipes = true` | The mod's 61 built-in forge recipes |
+| `taverntales_4ging:default_recipes_enabled` | When `enableDefaultRecipes = true` | The mod's 77 built-in forge recipes |
 | `taverntales_4ging:default_categories_enabled` | When `enableDefaultCategories = true` | The mod's 7 built-in category definitions |
 
 > Conditions aren't limited to recipes — NeoForge wires condition parsing into data-pack registries too, so category definitions (3.2) also support `neoforge:conditions`.
@@ -192,18 +192,18 @@ Since NeoForge's rule is "a recipe loads only when the condition is true", attac
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "#": { "item": "minecraft:stick" },
-    "X": { "tag": "minecraft:planks" }
+    "#": "#c:rods/wooden",
+    "X": "#minecraft:wooden_tool_materials"
   },
   "pattern": ["X", "X", "#"],
-  "result": { "count": 1, "id": "minecraft:wooden_sword" }
+  "result": { "id": "minecraft:wooden_sword" }
 }
 ```
 
 Placing this at `data/minecraft/recipe/wooden_sword.json` overrides the vanilla Wooden Sword recipe. The condition works with any recipe type (the mod also uses it to override netherite's `smithing_transform` recipes).
 
 > When adding a forge recipe, if you also want to remove the corresponding vanilla recipe, override one this way to reuse the same config switch.
-> The original vanilla recipe text can be extracted from `data/minecraft/recipe/` inside `neoforge-<version>-client-extra-*.jar`.
+> The original vanilla recipe text can be extracted from `data/minecraft/recipe/`: the ones NeoForge rewrites (e.g. sticks replaced with `#c:rods/wooden`) live in `neoforge-<version>-universal.jar`, the rest in the Minecraft jar. When overriding, use NeoForge's rewritten version.
 
 ---
 

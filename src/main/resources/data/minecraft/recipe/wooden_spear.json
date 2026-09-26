@@ -1,0 +1,21 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:vanilla_recipe_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "#": "#c:rods/wooden",
+    "X": "#minecraft:wooden_tool_materials"
+  },
+  "pattern": [
+    "  X",
+    " # ",
+    "#  "
+  ],
+  "result": {
+    "id": "minecraft:wooden_spear"
+  }
+}

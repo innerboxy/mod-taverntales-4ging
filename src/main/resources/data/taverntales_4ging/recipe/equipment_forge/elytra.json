@@ -8,15 +8,15 @@
   "category": "taverntales_4ging:curio",
   "materials": [
     {
-      "item": "minecraft:phantom_membrane",
+      "ingredient": "minecraft:phantom_membrane",
       "count": 7
     },
     {
-      "item": "minecraft:netherite_ingot",
+      "ingredient": "minecraft:netherite_ingot",
       "count": 1
     },
     {
-      "item": "minecraft:nether_star",
+      "ingredient": "minecraft:nether_star",
       "count": 1
     }
   ],

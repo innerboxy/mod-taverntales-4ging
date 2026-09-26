@@ -8,11 +8,11 @@
   "category": "taverntales_4ging:tool",
   "materials": [
     {
-      "tag": "minecraft:planks",
+      "ingredient": "#minecraft:planks",
       "count": 2
     },
     {
-      "item": "minecraft:gold_ingot",
+      "ingredient": "minecraft:gold_ingot",
       "count": 3
     }
   ],

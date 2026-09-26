@@ -25,7 +25,7 @@ public class Config {
 
     /** 是否加载模组自带的默认锻造配方。默认开启。 */
     public static final ModConfigSpec.BooleanValue ENABLE_DEFAULT_RECIPES = BUILDER
-            .comment("加载模组自带的默认锻造配方(木/石/铁/金/钻石/下界合金装备、弓弩、盾牌等)。",
+            .comment("加载模组自带的默认锻造配方(木/石/铜/铁/金/钻石/下界合金装备、矛、弓弩、盾牌等)。",
                     "关闭后可由数据包完全自定义配方表。不影响装备锻造台方块自身的合成配方。",
                     "Load the mod's built-in forge recipes. Disable to define recipes entirely via datapack.",
                     "Does not affect the crafting recipe of the Equipment Forge block itself.")

@@ -8,11 +8,11 @@
   "category": "taverntales_4ging:tool",
   "materials": [
     {
-      "tag": "minecraft:planks",
+      "ingredient": "#minecraft:planks",
       "count": 1
     },
     {
-      "item": "minecraft:diamond",
+      "ingredient": "minecraft:diamond",
       "count": 1
     }
   ],

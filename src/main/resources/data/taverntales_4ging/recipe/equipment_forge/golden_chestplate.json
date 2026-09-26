@@ -8,7 +8,7 @@
   "category": "taverntales_4ging:armor",
   "materials": [
     {
-      "item": "minecraft:gold_ingot",
+      "ingredient": "minecraft:gold_ingot",
       "count": 8
     }
   ],

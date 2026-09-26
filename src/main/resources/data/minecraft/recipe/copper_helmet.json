@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:vanilla_recipe_enabled"
+    }
+  ],
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "X": "#c:ingots/copper"
+  },
+  "pattern": [
+    "XXX",
+    "X X"
+  ],
+  "result": {
+    "id": "minecraft:copper_helmet"
+  }
+}

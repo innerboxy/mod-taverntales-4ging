@@ -8,15 +8,15 @@
   "category": "taverntales_4ging:melee",
   "materials": [
     {
-      "item": "minecraft:heavy_core",
+      "ingredient": "minecraft:heavy_core",
       "count": 1
     },
     {
-      "item": "minecraft:breeze_rod",
+      "ingredient": "minecraft:breeze_rod",
       "count": 1
     },
     {
-      "item": "minecraft:iron_ingot",
+      "ingredient": "minecraft:iron_ingot",
       "count": 2
     }
   ],

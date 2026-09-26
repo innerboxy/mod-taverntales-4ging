@@ -8,11 +8,11 @@
   "category": "taverntales_4ging:armor",
   "materials": [
     {
-      "item": "minecraft:flint",
+      "ingredient": "minecraft:flint",
       "count": 3
     },
     {
-      "item": "minecraft:iron_ingot",
+      "ingredient": "minecraft:iron_ingot",
       "count": 3
     }
   ],
