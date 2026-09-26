@@ -3,9 +3,8 @@ package ibx.taverntales.forging.lootbag;
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ReloadableServerRegistries;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.HashMap;
@@ -21,12 +20,12 @@ public final class LootBagTables {
 
     /** 袋子类型(裸字符串)-> 战利品表键。非法字符会让 tryBuild 返回 null */
     public static ResourceKey<LootTable> keyOf(String type) {
-        ResourceLocation id = ResourceLocation.tryBuild(TavernTalesEquipmentForge.MODID, DIRECTORY + type);
+        Identifier id = Identifier.tryBuild(TavernTalesEquipmentForge.MODID, DIRECTORY + type);
         return id == null ? null : ResourceKey.create(Registries.LOOT_TABLE, id);
     }
 
     /** 战利品表 id -> 袋子类型;不是袋子表则返回 null */
-    private static String typeOf(ResourceLocation id) {
+    private static String typeOf(Identifier id) {
         if (!id.getNamespace().equals(TavernTalesEquipmentForge.MODID)) return null;
         if (!id.getPath().startsWith(DIRECTORY)) return null;
         String type = id.getPath().substring(DIRECTORY.length());
@@ -39,13 +38,11 @@ public final class LootBagTables {
      * {@code data/taverntales_4ging/loot_table/loot_bag/} 塞的文件都会被收进来。
      */
     public static Map<String, LootTable> collect(MinecraftServer server) {
-        ReloadableServerRegistries.Holder holder = server.reloadableRegistries();
         Map<String, LootTable> out = new HashMap<>();
-        for (ResourceLocation id : holder.getKeys(Registries.LOOT_TABLE)) {
-            String type = typeOf(id);
-            if (type == null) continue;
-            out.put(type, holder.getLootTable(ResourceKey.create(Registries.LOOT_TABLE, id)));
-        }
+        server.reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE).listElements().forEach(holder -> {
+            String type = typeOf(holder.key().identifier());
+            if (type != null) out.put(type, holder.value());
+        });
         return out;
     }
 }

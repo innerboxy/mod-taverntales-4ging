@@ -1,6 +1,7 @@
 package ibx.taverntales.forging.compat.jei;
 
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
+import ibx.taverntales.forging.client.ClientForgeRecipes;
 import ibx.taverntales.forging.client.ClientLootBags;
 import ibx.taverntales.forging.client.CreativeOrder;
 import ibx.taverntales.forging.client.screen.EquipmentForgeScreen;
@@ -9,25 +10,23 @@ import ibx.taverntales.forging.lootbag.LootBagDrop;
 import ibx.taverntales.forging.recipe.EquipmentForgeRecipe;
 import ibx.taverntales.forging.registry.ModDataComponents;
 import ibx.taverntales.forging.registry.ModItems;
-import ibx.taverntales.forging.registry.ModRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.Comparator;
@@ -37,16 +36,15 @@ import java.util.Map;
 @JeiPlugin
 public class EquipmentForgeJeiPlugin implements IModPlugin {
     // JEI 在注册表事件之前就会类加载插件,这里不能调用 DeferredHolder.get()
-    public static final RecipeType<RecipeHolder<EquipmentForgeRecipe>> EQUIPMENT_FORGE =
-            RecipeType.createRecipeHolderType(
-                    ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "equipment_forge"));
+    public static final IRecipeHolderType<EquipmentForgeRecipe> EQUIPMENT_FORGE =
+            IRecipeHolderType.create(Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "equipment_forge"));
 
-    public static final RecipeType<LootBagDisplay> LOOT_BAG =
-            RecipeType.create(TavernTalesEquipmentForge.MODID, "loot_bag", LootBagDisplay.class);
+    public static final IRecipeType<LootBagDisplay> LOOT_BAG =
+            IRecipeType.create(TavernTalesEquipmentForge.MODID, "loot_bag", LootBagDisplay.class);
 
     @Override
-    public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "jei_plugin");
+    public Identifier getPluginUid() {
+        return Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "jei_plugin");
     }
 
     @Override
@@ -108,10 +106,9 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
                 .orElse(1);
     }
 
+    /** 客户端缓存里的配方:原版不再同步配方,由服务端经 NeoForge 代发(见 ClientForgeRecipes) */
     private static List<RecipeHolder<EquipmentForgeRecipe>> loadedRecipes() {
-        Level level = Minecraft.getInstance().level;
-        if (level == null) return List.of();
-        return level.getRecipeManager().getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get());
+        return ClientForgeRecipes.all();
     }
 
     @Override
@@ -135,10 +132,10 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new ItemStack(ModItems.EQUIPMENT_FORGE.get()), EQUIPMENT_FORGE);
+        registration.addCraftingStation(EQUIPMENT_FORGE, ModItems.EQUIPMENT_FORGE.get());
         if (JustEnoughResourcesCompat.isLoaded()) {
             // 空袋作为触媒:在 JEI 里查战利品袋这个物品,就能看到所有袋子的掉落
-            registration.addRecipeCatalyst(new ItemStack(ModItems.LOOT_BAG.get()), LOOT_BAG);
+            registration.addCraftingStation(LOOT_BAG, ModItems.LOOT_BAG.get());
         }
     }
 

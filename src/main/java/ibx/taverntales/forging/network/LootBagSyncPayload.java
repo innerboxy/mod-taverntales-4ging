@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public record LootBagSyncPayload(Map<String, LootTable> tables) implements CustomPacketPayload {
     public static final Type<LootBagSyncPayload> TYPE =
-            new Type<>(ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "loot_bag_sync"));
+            new Type<>(Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "loot_bag_sync"));
 
     /** 表里含物品/附魔等注册表引用,故须用带注册表的编解码器 */
     public static final StreamCodec<RegistryFriendlyByteBuf, LootBagSyncPayload> STREAM_CODEC =

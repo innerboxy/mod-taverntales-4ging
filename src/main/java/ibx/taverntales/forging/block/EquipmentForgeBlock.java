@@ -45,7 +45,7 @@ public class EquipmentForgeBlock extends HorizontalDirectionalBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             player.openMenu(new SimpleMenuProvider(
                     (id, inventory, p) -> new EquipmentForgeMenu(id, inventory, ContainerLevelAccess.create(level, pos)),
                     TITLE
@@ -55,6 +55,6 @@ public class EquipmentForgeBlock extends HorizontalDirectionalBlock {
                 ModNetworking.syncNetItems(serverPlayer);
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 }

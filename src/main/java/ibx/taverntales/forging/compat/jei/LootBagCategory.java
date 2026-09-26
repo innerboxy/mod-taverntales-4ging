@@ -10,7 +10,7 @@ import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -79,7 +79,7 @@ public class LootBagCategory extends AbstractRecipeCategory<LootBagDisplay> {
         // 袋子自身带着 loot_bag_type 组件,所以它的 tooltip 就是袋子的显示名
         builder.addInputSlot(BAG_X, BAG_Y)
                 .setStandardSlotBackground()
-                .addItemStack(display.bagStack());
+                .add(display.bagStack());
 
         List<LootBagDrop> drops = display.drops();
         int shown = Math.min(drops.size(), COLS * rows);
@@ -92,7 +92,7 @@ public class LootBagCategory extends AbstractRecipeCategory<LootBagDisplay> {
                     // 堆叠数显示最小数量;夹到 1 是因为 min 可能为 0(带概率的条目),
                     // 而 ItemStack 在 count<=0 时 isEmpty(),格子会渲染成空的。
                     // 0 和 1 都只显示物品不画数字,上限交给 tooltip 说。
-                    .addItemStack(drop.item().copyWithCount(Math.max(1, drop.min())))
+                    .add(drop.item().copyWithCount(Math.max(1, drop.min())))
                     .addRichTooltipCallback((view, tooltip) -> {
                         tooltip.add(Component.translatable("jei.taverntales_4ging.loot_bag.chance",
                                 formatChance(drop.chance())).withStyle(ChatFormatting.GRAY));
@@ -104,9 +104,9 @@ public class LootBagCategory extends AbstractRecipeCategory<LootBagDisplay> {
 
     @Override
     public void draw(LootBagDisplay display, IRecipeSlotsView recipeSlotsView,
-                     GuiGraphics guiGraphics, double mouseX, double mouseY) {
+                     GuiGraphicsExtractor graphics, double mouseX, double mouseY) {
         // 名字自带 § 颜色码,这里给的默认色只在译文没写颜色时生效
-        guiGraphics.drawString(Minecraft.getInstance().font, LootBagItem.displayName(display.type()),
+        graphics.text(Minecraft.getInstance().font, LootBagItem.displayName(display.type()),
                 NAME_X, NAME_Y, 0xFF404040, false);
     }
 

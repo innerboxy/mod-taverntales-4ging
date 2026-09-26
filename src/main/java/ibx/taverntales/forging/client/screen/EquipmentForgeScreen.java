@@ -1,34 +1,39 @@
 package ibx.taverntales.forging.client.screen;
 
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
+import ibx.taverntales.forging.client.ClientForgeRecipes;
 import ibx.taverntales.forging.client.CreativeOrder;
 import ibx.taverntales.forging.client.PinyinSearch;
 import ibx.taverntales.forging.menu.EquipmentForgeMenu;
 import ibx.taverntales.forging.network.CraftEquipmentPayload;
 import ibx.taverntales.forging.recipe.EquipmentCategoryDefinition;
 import ibx.taverntales.forging.recipe.EquipmentForgeRecipe;
-import ibx.taverntales.forging.registry.ModRecipes;
 import ibx.taverntales.forging.registry.ModRegistries;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.lwjgl.glfw.GLFW;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -116,48 +121,47 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final Component FILTER_ALL_LABEL = Component.translatable("gui.taverntales_4ging.filter_all");
     private static final Component FILTER_CRAFTABLE_LABEL = Component.translatable("gui.taverntales_4ging.filter_craftable");
 
-    private static final ResourceLocation BUTTON_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier BUTTON_TEXTURE = Identifier.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge_button.png");
-    private static final ResourceLocation BUTTON_TEXTURE_CLICKED = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier BUTTON_TEXTURE_CLICKED = Identifier.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge_button_clicked.png");
 
     /** 材料列表的上/下滚动箭头贴图 */
-    private static final ResourceLocation ARROW_UP_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier ARROW_UP_TEXTURE = Identifier.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge_gui_up.png");
-    private static final ResourceLocation ARROW_DOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier ARROW_DOWN_TEXTURE = Identifier.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge_gui_down.png");
 
     /** 原版按钮底座 sprite(九宫格拉伸) */
-    private static final ResourceLocation BUTTON_BASE_SPRITE =
-            ResourceLocation.withDefaultNamespace("widget/button");
-    private static final ResourceLocation BUTTON_BASE_HIGHLIGHTED_SPRITE =
-            ResourceLocation.withDefaultNamespace("widget/button_highlighted");
+    private static final Identifier BUTTON_BASE_SPRITE =
+            Identifier.withDefaultNamespace("widget/button");
+    private static final Identifier BUTTON_BASE_HIGHLIGHTED_SPRITE =
+            Identifier.withDefaultNamespace("widget/button_highlighted");
 
     /** 原版配方书槽位 sprite(25x25,缩放到 18x18 绘制) */
-    private static final ResourceLocation SLOT_CRAFTABLE_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/slot_craftable");
-    private static final ResourceLocation SLOT_UNCRAFTABLE_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/slot_uncraftable");
+    private static final Identifier SLOT_CRAFTABLE_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/slot_craftable");
+    private static final Identifier SLOT_UNCRAFTABLE_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/slot_uncraftable");
 
     /** 原版配方书过滤按钮 sprite */
-    private static final ResourceLocation FILTER_ENABLED_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_enabled");
-    private static final ResourceLocation FILTER_ENABLED_HIGHLIGHTED_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_enabled_highlighted");
-    private static final ResourceLocation FILTER_DISABLED_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled");
-    private static final ResourceLocation FILTER_DISABLED_HIGHLIGHTED_SPRITE =
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
+    private static final Identifier FILTER_ENABLED_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/filter_enabled");
+    private static final Identifier FILTER_ENABLED_HIGHLIGHTED_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted");
+    private static final Identifier FILTER_DISABLED_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/filter_disabled");
+    private static final Identifier FILTER_DISABLED_HIGHLIGHTED_SPRITE =
+            Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted");
 
-    /** 内置"全部"标签的翻译名与图标 */
+    /** 内置"全部"标签的翻译名;图标在 buildTabs 里现造——26.1 起类加载时注册表未就绪,静态字段不能 new ItemStack */
     private static final Component ALL_LABEL = Component.translatable("category.taverntales_4ging.all");
-    private static final ItemStack ALL_ICON = new ItemStack(Items.COMPASS);
 
     /**
      * 内置分类的图标回退:当分类数据里的 icon 物品不存在时使用
      * (未装对应模组,或被数据包覆盖成了无效物品)。未登记的分类一律回退书本。
      */
-    private static final Map<ResourceLocation, Item> FALLBACK_ICONS = Map.of(
+    private static final Map<Identifier, Item> FALLBACK_ICONS = Map.of(
             categoryId("melee"), Items.IRON_SWORD,
             categoryId("ranged"), Items.BOW,
             categoryId("magic"), Items.KNOWLEDGE_BOOK,
@@ -166,12 +170,12 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             categoryId("shield"), Items.SHIELD,
             categoryId("curio"), Items.ELYTRA);
 
-    private static ResourceLocation categoryId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, path);
+    private static Identifier categoryId(String path) {
+        return Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, path);
     }
 
     /** 分类子标签,category 为 null 表示"全部" */
-    private record CategoryTab(ResourceLocation category, ItemStack icon, Component label) {}
+    private record CategoryTab(Identifier category, ItemStack icon, Component label) {}
 
     /** 标签列表:内置"全部"置顶,其余由数据包注册表驱动,init 时构建 */
     private List<CategoryTab> tabs = List.of();
@@ -179,15 +183,15 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private int tabPage;
 
     /** 当前选中的分类 id,null 表示"全部" */
-    private ResourceLocation activeCategory;
+    private Identifier activeCategory;
     /** 是否仅显示可合成配方 */
     private boolean craftableOnly;
 
     private List<RecipeHolder<EquipmentForgeRecipe>> allRecipes = List.of();
     private List<RecipeHolder<EquipmentForgeRecipe>> filtered = List.of();
     /** 配方 id -> [原文/全拼/首字母] 检索键 */
-    private final Map<ResourceLocation, String[]> searchKeys = new HashMap<>();
-    private final Set<ResourceLocation> craftableIds = new HashSet<>();
+    private final Map<ResourceKey<Recipe<?>>, String[]> searchKeys = new HashMap<>();
+    private final Set<ResourceKey<Recipe<?>>> craftableIds = new HashSet<>();
     private RecipeHolder<EquipmentForgeRecipe> selected;
     private int scrollRow;
 
@@ -203,9 +207,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private Button craftButton;
 
     public EquipmentForgeScreen(EquipmentForgeMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageWidth = 176;
-        this.imageHeight = 227;
+        super(menu, playerInventory, title, 176, 227);
     }
 
     @Override
@@ -224,22 +226,21 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
         buildTabs();
 
-        // 排序:先按结果物品稀有度(普通→史诗),再按创造模式物品栏(搜索页)顺序
+        // 排序:先按结果物品稀有度(普通→史诗),再按创造模式物品栏(搜索页)顺序。
+        // 配方来自客户端缓存:1.21.2 起原版不再同步配方,由服务端经 NeoForge 代发(见 ClientForgeRecipes)
         creativeOrder = CreativeOrder.build();
-        var registries = minecraft.level.registryAccess();
-        allRecipes = minecraft.level.getRecipeManager()
-                .getAllRecipesFor(ModRecipes.EQUIPMENT_FORGE_TYPE.get())
+        allRecipes = ClientForgeRecipes.all()
                 .stream()
                 .sorted(Comparator
                         .comparingInt((RecipeHolder<EquipmentForgeRecipe> h) ->
-                                h.value().getResultItem(registries).getRarity().ordinal())
+                                h.value().resultView().getRarity().ordinal())
                         .thenComparingInt(h -> creativeOrder.getOrDefault(
-                                h.value().getResultItem(registries).getItem(), Integer.MAX_VALUE))
-                        .thenComparing(h -> h.id().toString()))
+                                h.value().resultView().getItem(), Integer.MAX_VALUE))
+                        .thenComparing(h -> h.id().identifier().toString()))
                 .toList();
         searchKeys.clear();
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
-            String name = holder.value().getResultItem(minecraft.level.registryAccess()).getHoverName().getString();
+            String name = holder.value().resultView().getHoverName().getString();
             searchKeys.put(holder.id(), PinyinSearch.searchKeys(name));
         }
         refreshCraftable();
@@ -250,17 +251,17 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     /** 从数据包注册表构建标签:内置"全部"置顶,其余按 order、再按 id 字母序 */
     private void buildTabs() {
         List<CategoryTab> list = new ArrayList<>();
-        list.add(new CategoryTab(null, ALL_ICON, ALL_LABEL));
+        list.add(new CategoryTab(null, new ItemStack(Items.COMPASS), ALL_LABEL));
         minecraft.level.registryAccess()
-                .registry(ModRegistries.EQUIPMENT_CATEGORY)
+                .lookup(ModRegistries.EQUIPMENT_CATEGORY)
                 .ifPresent(registry -> registry.entrySet().stream()
                         .sorted(Comparator
                                 .comparingInt((Map.Entry<ResourceKey<EquipmentCategoryDefinition>, EquipmentCategoryDefinition> e) ->
                                         e.getValue().order())
-                                .thenComparing(e -> e.getKey().location().toString()))
+                                .thenComparing(e -> e.getKey().identifier().toString()))
                         .forEach(e -> {
                             EquipmentCategoryDefinition def = e.getValue();
-                            ResourceLocation id = e.getKey().location();
+                            Identifier id = e.getKey().identifier();
                             list.add(new CategoryTab(id, categoryIcon(id, def), def.name()));
                         }));
         tabs = List.copyOf(list);
@@ -325,25 +326,25 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
      * 分类的展示图标:icon 物品不存在(如未装对应模组)时用内置回退表,未登记的分类兜底书本。
      * 供锻造界面标签与 JEI 分类角标共用。
      */
-    public static ItemStack categoryIcon(ResourceLocation id, EquipmentCategoryDefinition def) {
+    public static ItemStack categoryIcon(Identifier id, EquipmentCategoryDefinition def) {
         Item icon = existingItem(def.icon())
                 .orElseGet(() -> FALLBACK_ICONS.getOrDefault(id, Items.BOOK));
         return new ItemStack(icon);
     }
 
     /** 注册表中存在且非空气的物品 */
-    private static java.util.Optional<Item> existingItem(ResourceLocation id) {
+    private static java.util.Optional<Item> existingItem(Identifier id) {
         return BuiltInRegistries.ITEM.getOptional(id).filter(item -> item != Items.AIR);
     }
 
     /** 配方引用了未定义的分类 id 时打调试日志(这类配方只会出现在"全部"中) */
     private void warnUnknownCategories() {
-        Set<ResourceLocation> known = new HashSet<>();
+        Set<Identifier> known = new HashSet<>();
         for (CategoryTab tab : tabs) {
             if (tab.category() != null) known.add(tab.category());
         }
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
-            ResourceLocation cat = holder.value().category();
+            Identifier cat = holder.value().category();
             if (!known.contains(cat)) {
                 TavernTalesEquipmentForge.LOGGER.debug(
                         "配方 {} 的分类 {} 未定义,仅在\"全部\"标签中显示", holder.id(), cat);
@@ -353,7 +354,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     @Override
     protected void containerTick() {
-        Set<ResourceLocation> before = craftableOnly ? new HashSet<>(craftableIds) : null;
+        Set<ResourceKey<Recipe<?>>> before = craftableOnly ? new HashSet<>(craftableIds) : null;
         refreshCraftable();
         // 开启过滤时,背包变动导致可合成集合变化要即时反映到列表
         if (craftableOnly && !craftableIds.equals(before)) {
@@ -380,7 +381,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             if (!query.isEmpty()) {
                 String[] keys = searchKeys.get(holder.id());
                 boolean matches = (keys != null && PinyinSearch.matches(keys, query))
-                        || holder.id().getPath().contains(query);
+                        || holder.id().identifier().getPath().contains(query);
                 if (!matches) continue;
             }
             list.add(holder);
@@ -394,10 +395,10 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     /** JEI 物品转移的待选配方 id;在锻造界面下次渲染时消费(此时 JEI 配方界面已关闭) */
-    private static ResourceLocation pendingSelect;
+    private static ResourceKey<Recipe<?>> pendingSelect;
 
     /** 由 JEI 转移处理器调用:请求下次打开/返回锻造界面时选中该配方 */
-    public static void requestSelect(ResourceLocation recipeId) {
+    public static void requestSelect(ResourceKey<Recipe<?>> recipeId) {
         pendingSelect = recipeId;
     }
 
@@ -405,13 +406,13 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
      * 在锻造界面中选中指定配方并使其可见。
      * 清空搜索、取消"仅可合成"过滤,并切换到该配方的分类(未知分类则回到"全部"),再滚动到该项。
      */
-    private void selectRecipe(ResourceLocation recipeId) {
+    private void selectRecipe(ResourceKey<Recipe<?>> recipeId) {
         for (RecipeHolder<EquipmentForgeRecipe> holder : allRecipes) {
             if (!holder.id().equals(recipeId)) continue;
             selected = holder;
             if (searchBox != null) searchBox.setValue("");
             craftableOnly = false;
-            ResourceLocation cat = holder.value().category();
+            Identifier cat = holder.value().category();
             boolean hasTab = tabs.stream().anyMatch(t -> cat.equals(t.category()));
             activeCategory = hasTab ? cat : null;
             ensureActiveTabVisible();
@@ -426,70 +427,75 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     private void sendCraft() {
         if (selected != null && craftableIds.contains(selected.id())) {
-            PacketDistributor.sendToServer(new CraftEquipmentPayload(selected.id()));
+            ClientPacketDistributor.sendToServer(new CraftEquipmentPayload(selected.id()));
         }
     }
 
+    /**
+     * 每帧最先调用的钩子(先于 extractRenderState,且在更低的图层)。装备格与材料区也画在这一层,
+     * 与原版切石机一致:手持物品、槽位高亮与 tooltip 都会盖在它们上面。
+     */
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         // 消费 JEI 物品转移请求(此时已返回锻造界面)
         if (pendingSelect != null) {
-            ResourceLocation id = pendingSelect;
+            ResourceKey<Recipe<?>> id = pendingSelect;
             pendingSelect = null;
             selectRecipe(id);
         }
+        // 控件在随后的 extractRenderState 里绘制,先把可用状态定下来
         craftButton.active = selected != null && craftableIds.contains(selected.id());
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderGrid(guiGraphics, mouseX, mouseY);
-        renderMaterials(guiGraphics);
-        renderTooltip(guiGraphics, mouseX, mouseY); // 背包槽位 tooltip
-        renderGridTooltip(guiGraphics, mouseX, mouseY);
-        renderMaterialTooltip(guiGraphics, mouseX, mouseY);
-        int tab = tabIndexAt(mouseX, mouseY);
-        if (tab >= 0) {
-            guiGraphics.renderTooltip(font, tabs.get(tab).label(), mouseX, mouseY);
-        }
-        if (isFilterHovered(mouseX, mouseY)) {
-            guiGraphics.renderTooltip(font,
-                    craftableOnly ? FILTER_CRAFTABLE_LABEL : FILTER_ALL_LABEL, mouseX, mouseY);
-        }
-    }
-
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        super.extractBackground(graphics, mouseX, mouseY, a);
         // 主面板
-        drawPanel(guiGraphics, leftPos, topPos, imageWidth, imageHeight, 0xFFC6C6C6);
+        drawPanel(graphics, leftPos, topPos, imageWidth, imageHeight, 0xFFC6C6C6);
         // 左侧物品区
-        drawInset(guiGraphics, leftPos + GRID_X - 1, topPos + GRID_Y - 1,
+        drawInset(graphics, leftPos + GRID_X - 1, topPos + GRID_Y - 1,
                 GRID_COLS * CELL + 2, GRID_ROWS * CELL + 2);
         // 右侧材料区:顶部与装备选择栏对齐,底部止于制作按钮上方
-        drawInset(guiGraphics, leftPos + RIGHT_X - 1, topPos + MAT_PANEL_Y,
+        drawInset(graphics, leftPos + RIGHT_X - 1, topPos + MAT_PANEL_Y,
                 RIGHT_WIDTH + 2, MAT_PANEL_H);
-        renderTabs(guiGraphics);
-        renderFilterToggle(guiGraphics, mouseX, mouseY);
-        renderClearButton(guiGraphics, mouseX, mouseY);
+        renderTabs(graphics);
+        renderFilterToggle(graphics, mouseX, mouseY);
+        renderClearButton(graphics, mouseX, mouseY);
         // 玩家背包 + 快捷栏底格
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
-                drawInset(guiGraphics,
+                drawInset(graphics,
                         leftPos + EquipmentForgeMenu.INV_X - 1 + col * 18,
                         topPos + EquipmentForgeMenu.INV_Y - 1 + row * 18, 18, 18);
             }
         }
         for (int col = 0; col < 9; col++) {
-            drawInset(guiGraphics,
+            drawInset(graphics,
                     leftPos + EquipmentForgeMenu.INV_X - 1 + col * 18,
                     topPos + EquipmentForgeMenu.HOTBAR_Y - 1, 18, 18);
+        }
+        renderGrid(graphics, mouseX, mouseY);
+        renderMaterials(graphics);
+    }
+
+    @Override
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY); // 背包槽位 tooltip
+        renderGridTooltip(graphics, mouseX, mouseY);
+        renderMaterialTooltip(graphics, mouseX, mouseY);
+        int tab = tabIndexAt(mouseX, mouseY);
+        if (tab >= 0) {
+            graphics.setTooltipForNextFrame(font, tabs.get(tab).label(), mouseX, mouseY);
+        }
+        if (isFilterHovered(mouseX, mouseY)) {
+            graphics.setTooltipForNextFrame(font,
+                    craftableOnly ? FILTER_CRAFTABLE_LABEL : FILTER_ALL_LABEL, mouseX, mouseY);
         }
     }
 
     /** 可合成过滤开关:复用原版配方书的过滤按钮材质 */
-    private void renderFilterToggle(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderFilterToggle(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         boolean hover = isFilterHovered(mouseX, mouseY);
-        ResourceLocation sprite = craftableOnly
+        Identifier sprite = craftableOnly
                 ? (hover ? FILTER_ENABLED_HIGHLIGHTED_SPRITE : FILTER_ENABLED_SPRITE)
                 : (hover ? FILTER_DISABLED_HIGHLIGHTED_SPRITE : FILTER_DISABLED_SPRITE);
-        guiGraphics.blitSprite(sprite, leftPos + FILTER_X, topPos + FILTER_Y, FILTER_W, FILTER_H);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, leftPos + FILTER_X, topPos + FILTER_Y, FILTER_W, FILTER_H);
     }
 
     private boolean isFilterHovered(double mouseX, double mouseY) {
@@ -498,14 +504,14 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     /** 清除所选按钮,仅在选中配方时显示 */
-    private void renderClearButton(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderClearButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         if (selected == null) return;
         int x = leftPos + CLEAR_X;
         int y = topPos + CLEAR_Y;
         boolean hover = isClearHovered(mouseX, mouseY);
-        drawPanel(guiGraphics, x, y, CLEAR_SIZE, CLEAR_SIZE, hover ? 0xFFD8D8D8 : 0xFFC6C6C6);
+        drawPanel(graphics, x, y, CLEAR_SIZE, CLEAR_SIZE, hover ? 0xFFD8D8D8 : 0xFFC6C6C6);
         String cross = "×";
-        guiGraphics.drawString(font, cross,
+        graphics.text(font, cross,
                 x + (CLEAR_SIZE - font.width(cross)) / 2 + 1, y + 2,
                 hover ? 0xFFAA2222 : 0xFF404040, false);
     }
@@ -517,47 +523,47 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     /** 左侧竖排分类子标签,选中的标签与主面板连成一体;分页时"全部"钉在顶部,上下出现翻页按钮 */
-    private void renderTabs(GuiGraphics guiGraphics) {
+    private void renderTabs(GuiGraphicsExtractor graphics) {
         if (!tabsPaged()) {
             for (int i = 0; i < tabs.size(); i++) {
-                renderTab(guiGraphics, tabs.get(i), topPos + TAB_Y0 + i * (TAB_SIZE + TAB_GAP));
+                renderTab(graphics, tabs.get(i), topPos + TAB_Y0 + i * (TAB_SIZE + TAB_GAP));
             }
             return;
         }
         // "全部"钉在顶部,不随翻页移动
-        renderTab(guiGraphics, tabs.get(0), topPos + TAB_Y0);
+        renderTab(graphics, tabs.get(0), topPos + TAB_Y0);
         int first = 1 + tabPage * TAB_PAGE_SIZE;
         int count = Math.min(TAB_PAGE_SIZE, tabs.size() - first);
         for (int row = 0; row < count; row++) {
-            renderTab(guiGraphics, tabs.get(first + row), topPos + tabListY0() + row * (TAB_SIZE + TAB_GAP));
+            renderTab(graphics, tabs.get(first + row), topPos + tabListY0() + row * (TAB_SIZE + TAB_GAP));
         }
         // 页码,在下翻按钮上方,标签列内水平居中
         String pageLabel = (tabPage + 1) + "/" + tabPageCount();
-        guiGraphics.drawString(font, pageLabel,
+        graphics.text(font, pageLabel,
                 leftPos - TAB_SIZE + (TAB_SIZE - font.width(pageLabel)) / 2,
                 topPos + tabPageLabelY(), 0xFFFFFFFF, true);
         // 翻页按钮常驻,到达边界时点击只响声音不翻页
-        renderTabPageButton(guiGraphics, topPos + tabUpButtonY(), ARROW_UP_TEXTURE);
-        renderTabPageButton(guiGraphics, topPos + tabDownButtonY(), ARROW_DOWN_TEXTURE);
+        renderTabPageButton(graphics, topPos + tabUpButtonY(), ARROW_UP_TEXTURE);
+        renderTabPageButton(graphics, topPos + tabDownButtonY(), ARROW_DOWN_TEXTURE);
     }
 
-    private void renderTab(GuiGraphics guiGraphics, CategoryTab tab, int y) {
+    private void renderTab(GuiGraphicsExtractor graphics, CategoryTab tab, int y) {
         boolean active = java.util.Objects.equals(tab.category(), activeCategory);
         int x = leftPos - TAB_SIZE;
         // 多画 1px 盖住主面板左边框,使标签看起来贴在面板上
-        drawPanel(guiGraphics, x, y, TAB_SIZE + 1, TAB_SIZE, active ? 0xFFC6C6C6 : 0xFF8B8B8B);
+        drawPanel(graphics, x, y, TAB_SIZE + 1, TAB_SIZE, active ? 0xFFC6C6C6 : 0xFF8B8B8B);
         if (active) {
             // 抹掉标签右边框,与主面板打通
-            guiGraphics.fill(leftPos, y + 1, leftPos + 1, y + TAB_SIZE - 1, 0xFFC6C6C6);
+            graphics.fill(leftPos, y + 1, leftPos + 1, y + TAB_SIZE - 1, 0xFFC6C6C6);
         }
-        guiGraphics.renderItem(tab.icon(), x + TAB_ICON_INSET, y + TAB_ICON_INSET);
+        graphics.item(tab.icon(), x + TAB_ICON_INSET, y + TAB_ICON_INSET);
     }
 
     /** 标签列的翻页按钮:比标签窄,在标签列内水平居中 */
-    private void renderTabPageButton(GuiGraphics guiGraphics, int y, ResourceLocation arrow) {
+    private void renderTabPageButton(GuiGraphicsExtractor graphics, int y, Identifier arrow) {
         int x = leftPos - TAB_SIZE + TAB_PAGE_BTN_X;
-        drawPanel(guiGraphics, x, y, TAB_PAGE_BTN_W, TAB_PAGE_BTN_H, 0xFF8B8B8B);
-        guiGraphics.blit(arrow, x + (TAB_PAGE_BTN_W - ARROW_W) / 2, y + (TAB_PAGE_BTN_H - ARROW_H) / 2,
+        drawPanel(graphics, x, y, TAB_PAGE_BTN_W, TAB_PAGE_BTN_H, 0xFF8B8B8B);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, arrow, x + (TAB_PAGE_BTN_W - ARROW_W) / 2, y + (TAB_PAGE_BTN_H - ARROW_H) / 2,
                 0, 0, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
     }
 
@@ -611,7 +617,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         return 0;
     }
 
-    private static void drawPanel(GuiGraphics g, int x, int y, int w, int h, int fill) {
+    private static void drawPanel(GuiGraphicsExtractor g, int x, int y, int w, int h, int fill) {
         g.fill(x, y, x + w, y + h, fill);
         g.fill(x, y, x + w, y + 1, 0xFFFFFFFF);
         g.fill(x, y, x + 1, y + h, 0xFFFFFFFF);
@@ -619,7 +625,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         g.fill(x + w - 1, y, x + w, y + h, 0xFF555555);
     }
 
-    private static void drawInset(GuiGraphics g, int x, int y, int w, int h) {
+    private static void drawInset(GuiGraphicsExtractor g, int x, int y, int w, int h) {
         g.fill(x, y, x + w, y + h, 0xFF8B8B8B);
         g.fill(x, y, x + w, y + 1, 0xFF373737);
         g.fill(x, y, x + 1, y + h, 0xFF373737);
@@ -628,28 +634,28 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     @Override
-    protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         // 与搜索框(y=8,高 14)垂直居中对齐
-        guiGraphics.drawString(font, MATERIALS_LABEL, RIGHT_X, 11, 0xFF404040, false);
+        graphics.text(font, MATERIALS_LABEL, RIGHT_X, 11, 0xFF404040, false);
         // 选中配方时,在制作按钮右侧展示指示箭头和将要制作的物品
         if (selected != null) {
-            drawCraftArrow(guiGraphics,
+            drawCraftArrow(graphics,
                     BUTTON_X + BUTTON_WIDTH + (BUTTON_ICON_GAP - CRAFT_ARROW_W) / 2,
                     BUTTON_Y + (BUTTON_HEIGHT - CRAFT_ARROW_H) / 2);
-            ItemStack result = selected.value().getResultItem(minecraft.level.registryAccess());
-            guiGraphics.renderItem(result, BUTTON_X + BUTTON_WIDTH + BUTTON_ICON_GAP, BUTTON_Y + 2);
+            ItemStack result = selected.value().resultView();
+            graphics.item(result, BUTTON_X + BUTTON_WIDTH + BUTTON_ICON_GAP, BUTTON_Y + 2);
         }
     }
 
     /** 原版风格的制作箭头:9px 长的箭杆 + 逐列收窄的箭头,纯色程序绘制 */
-    private static void drawCraftArrow(GuiGraphics g, int x, int y) {
+    private static void drawCraftArrow(GuiGraphicsExtractor g, int x, int y) {
         g.fill(x, y + 3, x + 9, y + 6, 0xFF8B8B8B);
         for (int i = 0; i < 5; i++) {
             g.fill(x + 9 + i, y + i, x + 10 + i, y + CRAFT_ARROW_H - i, 0xFF8B8B8B);
         }
     }
 
-    private void renderGrid(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderGrid(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int startIndex = scrollRow * GRID_COLS;
         for (int i = 0; i < GRID_ROWS * GRID_COLS; i++) {
             int index = startIndex + i;
@@ -660,15 +666,16 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
             // 参照原版配方书:可合成/不可合成用各自的槽位底图,不再画边框
             boolean craftable = craftableIds.contains(holder.id());
-            blitSlotSprite(guiGraphics, craftable ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE,
+            blitSlotSprite(graphics, craftable ? SLOT_CRAFTABLE_SPRITE : SLOT_UNCRAFTABLE_SPRITE,
                     x - 1, y - 1);
 
-            ItemStack result = holder.value().getResultItem(minecraft.level.registryAccess());
-            guiGraphics.renderItem(result, x, y);
-            guiGraphics.renderItemDecorations(font, result, x, y);
+            ItemStack result = holder.value().resultView();
+            graphics.item(result, x, y);
+            graphics.itemDecorations(font, result, x, y);
 
             if (mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
-                guiGraphics.fill(x, y, x + 16, y + 16, 250, 0x66FFFFFF);
+                // 新渲染管线没有 z 值,同一图层内按提交顺序叠放:物品之后画即盖在物品上
+                graphics.fill(x, y, x + 16, y + 16, 0x66FFFFFF);
             }
         }
     }
@@ -678,19 +685,19 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
      * 非整数缩放会让像素画边框宽窄不一,这里改为四象限 1:1 拼接:
      * 取对称的 24x24 区域(丢掉投影),四个 9x9 角原样搬到 18x18 目标,内部纯色所以无接缝。
      */
-    private static void blitSlotSprite(GuiGraphics guiGraphics, ResourceLocation sprite, int x, int y) {
+    private static void blitSlotSprite(GuiGraphicsExtractor graphics, Identifier sprite, int x, int y) {
         int half = CELL / 2; // 9
-        guiGraphics.blitSprite(sprite, 25, 25, 0, 0, x, y, half, half);
-        guiGraphics.blitSprite(sprite, 25, 25, 24 - half, 0, x + half, y, half, half);
-        guiGraphics.blitSprite(sprite, 25, 25, 0, 24 - half, x, y + half, half, half);
-        guiGraphics.blitSprite(sprite, 25, 25, 24 - half, 24 - half, x + half, y + half, half, half);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 25, 25, 0, 0, x, y, half, half);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 25, 25, 24 - half, 0, x + half, y, half, half);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 25, 25, 0, 24 - half, x, y + half, half, half);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, 25, 25, 24 - half, 24 - half, x + half, y + half, half, half);
     }
 
-    private void renderMaterials(GuiGraphics guiGraphics) {
+    private void renderMaterials(GuiGraphicsExtractor graphics) {
         int x = leftPos + RIGHT_X + 3;
         int y = topPos + MAT_ROW_Y;
         if (selected == null) {
-            guiGraphics.drawWordWrap(font, SELECT_HINT, x, y, RIGHT_WIDTH - 8, 0xFF555555);
+            graphics.textWithWordWrap(font, SELECT_HINT, x, y, RIGHT_WIDTH - 8, 0xFF555555, false);
             return;
         }
         List<SizedIngredient> materials = sortedMaterials();
@@ -704,21 +711,21 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
             int owned = EquipmentForgeRecipe.countMatching(menu.playerInventory, menu.netItems(), material.ingredient());
             boolean enough = owned >= material.count();
 
-            guiGraphics.renderItem(icon, x, y);
+            graphics.item(icon, x, y);
             // 栏位变窄:物品名改由悬停提示展示,此处只显示 拥有/所需
             String text = owned + "/" + material.count();
-            guiGraphics.drawString(font, text,
+            graphics.text(font, text,
                     leftPos + RIGHT_X + RIGHT_WIDTH - 4 - font.width(text), y + 4,
                     enough ? 0xFF3FB53F : 0xFFCC3333, false);
             y += 18;
         }
         // 上/下还有材料未显示时,在材料行上下的空隙里画滚动箭头
         if (matScrollRow > 0) {
-            guiGraphics.blit(ARROW_UP_TEXTURE, leftPos + ARROW_X, topPos + ARROW_UP_Y,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ARROW_UP_TEXTURE, leftPos + ARROW_X, topPos + ARROW_UP_Y,
                     0, 0, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
         }
         if (matScrollRow < maxMatScrollRow()) {
-            guiGraphics.blit(ARROW_DOWN_TEXTURE, leftPos + ARROW_X, topPos + ARROW_DOWN_Y,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ARROW_DOWN_TEXTURE, leftPos + ARROW_X, topPos + ARROW_DOWN_Y,
                     0, 0, ARROW_W, ARROW_H, ARROW_W, ARROW_H);
         }
     }
@@ -756,15 +763,14 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
 
     /** 材料的排序代表物品:取 ingredient 的第一个可选项(稳定,不随轮换变化) */
     private static ItemStack sortRepresentative(SizedIngredient material) {
-        ItemStack[] options = material.ingredient().getItems();
-        return options.length == 0 ? ItemStack.EMPTY : options[0];
+        return material.ingredient().items().findFirst().map(ItemStack::new).orElse(ItemStack.EMPTY);
     }
 
     /** 标签材料轮换展示可用物品 */
     private static ItemStack materialIcon(SizedIngredient material) {
-        ItemStack[] options = material.ingredient().getItems();
-        if (options.length == 0) return ItemStack.EMPTY;
-        return options[(int) (System.currentTimeMillis() / 1000 % options.length)];
+        List<Holder<Item>> options = material.ingredient().items().toList();
+        if (options.isEmpty()) return ItemStack.EMPTY;
+        return new ItemStack(options.get((int) (System.currentTimeMillis() / 1000 % options.size())));
     }
 
     /** 鼠标悬停的材料行下标,不在材料图标上返回 -1 */
@@ -779,21 +785,21 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         return index < sortedMaterials().size() ? index : -1;
     }
 
-    private void renderMaterialTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderMaterialTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int index = materialIndexAt(mouseX, mouseY);
         if (index >= 0) {
             ItemStack icon = materialIcon(sortedMaterials().get(index));
             if (!icon.isEmpty()) {
-                guiGraphics.renderTooltip(font, icon, mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, icon, mouseX, mouseY);
             }
         }
     }
 
-    private void renderGridTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderGridTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int index = gridIndexAt(mouseX, mouseY);
         if (index >= 0 && index < filtered.size()) {
-            ItemStack result = filtered.get(index).value().getResultItem(minecraft.level.registryAccess());
-            guiGraphics.renderTooltip(font, result, mouseX, mouseY);
+            ItemStack result = filtered.get(index).value().resultView();
+            graphics.setTooltipForNextFrame(font, result, mouseX, mouseY);
         }
     }
 
@@ -806,8 +812,10 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == 0) {
             if (isFilterHovered(mouseX, mouseY)) {
                 craftableOnly = !craftableOnly;
                 scrollRow = 0;
@@ -842,7 +850,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
@@ -868,16 +876,20 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         // 搜索框聚焦时拦截按键,避免按 E 关闭界面
-        if (searchBox.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
-            return searchBox.keyPressed(keyCode, scanCode, modifiers) || true;
+        if (searchBox.isFocused() && !event.isEscape()) {
+            return searchBox.keyPressed(event) || true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     /** 20x20 方形贴图按钮,平常/悬停/按下三态 */
     private static class CraftIconButton extends Button {
+        /** 按下时底座、不可用时图标的压暗色。1.21.4 起没有 setColor,颜色直接作为 blit 参数 */
+        private static final int PRESSED_TINT = ARGB.colorFromFloat(1.0f, 0.65f, 0.65f, 0.65f);
+        private static final int INACTIVE_TINT = ARGB.colorFromFloat(1.0f, 0.5f, 0.5f, 0.5f);
+
         private boolean held;
 
         CraftIconButton(int x, int y, OnPress onPress) {
@@ -886,38 +898,28 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         }
 
         @Override
-        public void onClick(double mouseX, double mouseY) {
+        public void onClick(MouseButtonEvent event, boolean doubleClick) {
             held = true;
-            super.onClick(mouseX, mouseY);
+            super.onClick(event, doubleClick);
         }
 
         @Override
-        public void onRelease(double mouseX, double mouseY) {
+        public void onRelease(MouseButtonEvent event) {
             held = false;
         }
 
         @Override
-        protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
             // 底座:常亮,悬停高光,按下压暗;图标:按下换贴图,不可用时压暗
             boolean pressed = held && isHovered();
-            ResourceLocation base = !pressed && isHoveredOrFocused()
+            Identifier base = !pressed && isHoveredOrFocused()
                     ? BUTTON_BASE_HIGHLIGHTED_SPRITE : BUTTON_BASE_SPRITE;
-            if (pressed) {
-                guiGraphics.setColor(0.65f, 0.65f, 0.65f, 1.0f);
-            }
-            guiGraphics.blitSprite(base, getX(), getY(), width, height);
-            if (pressed) {
-                guiGraphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-            }
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, base, getX(), getY(), width, height,
+                    pressed ? PRESSED_TINT : -1);
 
-            ResourceLocation icon = pressed ? BUTTON_TEXTURE_CLICKED : BUTTON_TEXTURE;
-            if (!active) {
-                guiGraphics.setColor(0.5f, 0.5f, 0.5f, 1.0f);
-            }
-            guiGraphics.blit(icon, getX(), getY(), 0, 0, width, height, width, height);
-            if (!active) {
-                guiGraphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-            }
+            Identifier icon = pressed ? BUTTON_TEXTURE_CLICKED : BUTTON_TEXTURE;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, icon, getX(), getY(), 0, 0, width, height, width, height,
+                    active ? -1 : INACTIVE_TINT);
         }
     }
 }

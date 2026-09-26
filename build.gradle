@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.141'
+    id 'net.neoforged.moddev' version '2.0.147'
     id 'idea'
 }
 
@@ -26,19 +26,14 @@ base {
     archivesName = "${mod_id}-neoforge-${minecraft_version}"
 }
 
-// Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// Mojang ships Java 25 to end users in 26.1, so mods should target Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     version = project.neo_version
 
     accessTransformers {
         from 'src/main/resources/META-INF/accesstransformer.cfg'
-    }
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
     }
 
     runs {
@@ -68,10 +63,10 @@ neoForge {
 
 def pinyin4j_version = '2.5.1'
 dependencies {
-    // 拼音搜索,随 jarJar 打包进 mod;additionalRuntimeClasspath 供开发环境 runClient 使用
+    // 拼音搜索,随 jarJar 打包进 mod。26.1 起 MDG 取消了 additionalRuntimeClasspath,
+    // implementation 本身就会进开发环境的运行时类路径
     implementation "com.belerweb:pinyin4j:${pinyin4j_version}"
     jarJar "com.belerweb:pinyin4j:${pinyin4j_version}"
-    additionalRuntimeClasspath "com.belerweb:pinyin4j:${pinyin4j_version}"
 
     // JEI:编译期仅依赖 API,运行期加载完整模组(可选依赖,玩家未装 JEI 也能正常运行)
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"

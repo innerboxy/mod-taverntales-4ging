@@ -1,8 +1,8 @@
 package ibx.taverntales.forging.registry;
 
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
@@ -11,10 +11,10 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
  * 参数与原版 chest 集一致:只强制要求 ORIGIN(开袋位置),THIS_ENTITY(开袋玩家)可选,供条件/函数取用。
  */
 public class ModLootContextParamSets {
-    public static final ResourceLocation LOOT_BAG_ID =
-            ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "loot_bag");
+    public static final Identifier LOOT_BAG_ID =
+            Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "loot_bag");
 
-    public static final LootContextParamSet LOOT_BAG = LootContextParamSet.builder()
+    public static final ContextKeySet LOOT_BAG = new ContextKeySet.Builder()
             .required(LootContextParams.ORIGIN)
             .optional(LootContextParams.THIS_ENTITY)
             .build();

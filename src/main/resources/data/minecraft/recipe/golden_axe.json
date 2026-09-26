@@ -7,12 +7,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "#": {
-      "item": "minecraft:stick"
-    },
-    "X": {
-      "item": "minecraft:gold_ingot"
-    }
+    "#": "#c:rods/wooden",
+    "X": "#minecraft:gold_tool_materials"
   },
   "pattern": [
     "XX",
@@ -20,7 +16,6 @@
     " #"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:golden_axe"
   }
 }

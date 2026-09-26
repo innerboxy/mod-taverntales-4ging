@@ -9,26 +9,27 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * 战利品袋:{@code taverntales_4ging:loot_bag_type} 组件非空且能查到对应战利品表时,右键开袋获得战利品。
@@ -58,33 +59,34 @@ public class LootBagItem extends Item {
 
     /** 服务端查表。不用 reloadableRegistries().getLootTable(),那个查不到会静默返回 EMPTY 表,分不出"空表"和"没这张表" */
     private static Optional<LootTable> lootTable(ServerLevel level, ResourceKey<LootTable> key) {
-        return level.getServer().reloadableRegistries().get()
+        return level.getServer().reloadableRegistries().lookup()
                 .lookup(Registries.LOOT_TABLE)
                 .flatMap(lookup -> lookup.get(key))
                 .map(Holder::value);
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         ResourceKey<LootTable> key = tableKey(stack);
-        if (key == null) return InteractionResultHolder.pass(stack);
+        if (key == null) return InteractionResult.PASS;
 
         // 战利品表纯服务端持有,客户端无从判断这张表存不存在:凭组件先播动画,真正开袋在服务端
-        if (level.isClientSide) return InteractionResultHolder.success(stack);
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         Optional<LootTable> found = lootTable((ServerLevel) level, key);
-        if (found.isEmpty()) return InteractionResultHolder.pass(stack);
+        if (found.isEmpty()) return InteractionResult.PASS;
 
+        // 背包放得下的放进去,放不下的掉在脚下
         for (ItemStack loot : rollLoot(found.get(), (ServerLevel) level, player)) {
-            ItemHandlerHelper.giveItemToPlayer(player, loot);
+            player.getInventory().placeItemBackInInventory(loot);
         }
         if (!player.getAbilities().instabuild) {
             stack.shrink(1);
         }
         level.playSound(null, player.blockPosition(), SoundEvents.BUNDLE_DROP_CONTENTS,
                 SoundSource.PLAYERS, 1.0f, 1.0f);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     /** 服务端:掷战利品表。参数按 loot_bag 参数集给全——开袋位置,外加玩家供条件/函数使用 */
@@ -125,9 +127,10 @@ public class LootBagItem extends Item {
      * 加袋子就必须配译文。颜色也来自译文里的 § 格式码,故这里不附加任何样式。
      */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltip, TooltipFlag flag) {
         String type = typeOf(stack);
-        tooltip.add(type == null
+        tooltip.accept(type == null
                 ? EMPTY_LABEL.copy().withStyle(ChatFormatting.GRAY)
                 : displayName(type));
     }

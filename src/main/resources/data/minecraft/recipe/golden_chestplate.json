@@ -7,9 +7,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "X": {
-      "item": "minecraft:gold_ingot"
-    }
+    "X": "#c:ingots/gold"
   },
   "pattern": [
     "X X",
@@ -17,7 +15,6 @@
     "XXX"
   ],
   "result": {
-    "count": 1,
     "id": "minecraft:golden_chestplate"
   }
 }

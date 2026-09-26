@@ -5,7 +5,7 @@ import ibx.taverntales.forging.menu.EquipmentForgeMenu;
 import ibx.taverntales.forging.recipe.EquipmentForgeRecipe;
 import ibx.taverntales.forging.registry.ModMenus;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.types.IRecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import net.minecraft.world.entity.player.Player;
@@ -32,10 +32,15 @@ public class EquipmentForgeTransferHandler
     }
 
     @Override
-    public RecipeType<RecipeHolder<EquipmentForgeRecipe>> getRecipeType() {
+    public IRecipeType<RecipeHolder<EquipmentForgeRecipe>> getRecipeType() {
         return EquipmentForgeJeiPlugin.EQUIPMENT_FORGE;
     }
 
+    /**
+     * JEI 29 已把这个签名标为将移除,换成了 {@code transferRecipe(IRecipeTransferContext, boolean)};
+     * 但旧签名在接口里仍是 abstract,实现类绕不开,新签名的默认实现也正是转调这里。
+     */
+    @SuppressWarnings("removal")
     @Override
     public IRecipeTransferError transferRecipe(EquipmentForgeMenu container,
                                                RecipeHolder<EquipmentForgeRecipe> recipe,

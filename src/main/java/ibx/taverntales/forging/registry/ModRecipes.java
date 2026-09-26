@@ -3,7 +3,7 @@ package ibx.taverntales.forging.registry;
 import ibx.taverntales.forging.recipe.EquipmentForgeRecipe;
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -17,8 +17,8 @@ public class ModRecipes {
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<EquipmentForgeRecipe>> EQUIPMENT_FORGE_TYPE =
             RECIPE_TYPES.register("equipment_forge",
-                    () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "equipment_forge")));
+                    () -> RecipeType.simple(Identifier.fromNamespaceAndPath(TavernTalesEquipmentForge.MODID, "equipment_forge")));
 
-    public static final DeferredHolder<RecipeSerializer<?>, EquipmentForgeRecipe.Serializer> EQUIPMENT_FORGE_SERIALIZER =
-            RECIPE_SERIALIZERS.register("equipment_forge", EquipmentForgeRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<EquipmentForgeRecipe>> EQUIPMENT_FORGE_SERIALIZER =
+            RECIPE_SERIALIZERS.register("equipment_forge", () -> EquipmentForgeRecipe.SERIALIZER);
 }
