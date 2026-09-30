@@ -28,7 +28,6 @@ public class ModNetworking {
     /**
      * 服务端:登录与 /reload 时把锻造配方和袋子表发给玩家(数据包驱动,故不能在启动时算一次了事)。
      * 挂 OnDatapackSyncEvent 而非登录事件,是为了让 /reload 后界面和 JEI 里的展示也跟着更新。
-     * <p>1.21.2 起原版不再把配方整体同步给客户端,锻造界面与 JEI 都靠这里请求 NeoForge 代发,
      * 客户端在 RecipesReceivedEvent 里接收(见 ClientForgeRecipes)。
      */
     public static void onDatapackSync(final OnDatapackSyncEvent event) {

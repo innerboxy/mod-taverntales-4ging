@@ -2,6 +2,7 @@ package ibx.taverntales.forging;
 
 import com.mojang.logging.LogUtils;
 import ibx.taverntales.forging.config.Config;
+import ibx.taverntales.forging.lootbag.LootBagItem;
 import ibx.taverntales.forging.network.ModNetworking;
 import ibx.taverntales.forging.registry.ModBlocks;
 import ibx.taverntales.forging.registry.ModConditions;
@@ -38,6 +39,7 @@ public class TavernTalesEquipmentForge {
         modEventBus.addListener(ModNetworking::register);
         modEventBus.addListener(ModRegistries::register);
         modEventBus.addListener(this::addCreative);
+        modEventBus.addListener(LootBagItem::registerTooltip);
 
         // 战利品袋的战利品表参数集:没有注册表事件可挂,构造器里直接写静态表,赶在数据包加载之前
         ModLootContextParamSets.register();

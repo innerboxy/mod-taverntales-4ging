@@ -26,6 +26,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.neoforged.neoforge.common.tooltip.TooltipLocation;
+import net.neoforged.neoforge.event.RegisterTooltipAppendersEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -123,12 +126,21 @@ public class LootBagItem extends Item {
     }
 
     /**
+     * 注册 tooltip 追加器(模组事件总线)。26.1 起 {@code Item#appendHoverText} 已过时,改由 NeoForge 的追加器提供;
+     * HEAD 位置紧跟物品名,与原先 appendHoverText 输出的位置相同。
+     */
+    public static void registerTooltip(RegisterTooltipAppendersEvent event) {
+        event.registerAppender(TooltipLocation.HEAD, LootBagItem::appendTooltip);
+    }
+
+    /**
      * 显示名只认语言文件 {@code loot_bag.taverntales_4ging.<type>},没有任何自动推导:
      * 加袋子就必须配译文。颜色也来自译文里的 § 格式码,故这里不附加任何样式。
+     * 追加器对所有物品都会调用,非战利品袋直接跳过。
      */
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-                                Consumer<Component> tooltip, TooltipFlag flag) {
+    private static void appendTooltip(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                      @Nullable Player player, TooltipFlag flag, Consumer<Component> tooltip) {
+        if (!(stack.getItem() instanceof LootBagItem)) return;
         String type = typeOf(stack);
         tooltip.accept(type == null
                 ? EMPTY_LABEL.copy().withStyle(ChatFormatting.GRAY)

@@ -3,6 +3,7 @@ package ibx.taverntales.forging.client;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import ibx.taverntales.forging.TavernTalesEquipmentForge;
+import ibx.taverntales.forging.lootbag.LootBagTables;
 import ibx.taverntales.forging.registry.ModDataComponents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -31,10 +32,6 @@ import java.util.Optional;
 /**
  * 战利品袋的按类型换皮:资源包往 {@code assets/taverntales_4ging/models/item/loot_bag/} 丢一个
  * {@code <类型>.json} 就生效,不需要改代码,也不需要数据包配合。
- *
- * <p>原版 1.21.4 的物品模型映射({@code items/*.json} 的 select + component)要求把每个类型都列死在
- * json 里;这里注册一个自定义物品模型类型 {@code taverntales_4ging:loot_bag},在模型加载时扫描目录,
- * 保住"丢文件即生效"的约定。见 {@code assets/taverntales_4ging/items/loot_bag.json}。
  *
  * <p><b>为什么由资源包决定而非数据包</b>:袋子类型是数据包(服务端)定义的,而模型烘焙发生在资源重载时——
  * 远早于登录服务器,那时客户端根本不知道有哪些类型。所以只能反过来:资源包提供了哪些类型的模型,
@@ -94,8 +91,8 @@ public final class LootBagItemModel implements ItemModel {
         String prefix = MODEL_DIR + "/";
         if (!path.startsWith(prefix)) return null;
         String type = path.substring(prefix.length(), path.length() - JSON.length());
-        // 类型不含斜杠(与数据侧一致,子目录里的不算);default 是回退模型,保留名
-        if (type.isEmpty() || type.contains("/") || type.equals(DEFAULT_NAME)) return null;
+        // default 是回退模型,保留名
+        if (!LootBagTables.isValidType(type) || type.equals(DEFAULT_NAME)) return null;
         return type;
     }
 

@@ -24,13 +24,20 @@ public final class LootBagTables {
         return id == null ? null : ResourceKey.create(Registries.LOOT_TABLE, id);
     }
 
+    /**
+     * 从文件路径截出的类型名是否可用:只收一层,loot_bag/a/b 这种子目录拼不回组件里的裸字符串。
+     * 数据侧(战利品表)与资源侧(按类型换皮的模型)共用这条规则。
+     */
+    public static boolean isValidType(String type) {
+        return !type.isEmpty() && !type.contains("/");
+    }
+
     /** 战利品表 id -> 袋子类型;不是袋子表则返回 null */
     private static String typeOf(Identifier id) {
         if (!id.getNamespace().equals(TavernTalesEquipmentForge.MODID)) return null;
         if (!id.getPath().startsWith(DIRECTORY)) return null;
         String type = id.getPath().substring(DIRECTORY.length());
-        // 只收一层:loot_bag/a/b 这种子目录拼不回组件里的裸字符串,忽略
-        return (type.isEmpty() || type.contains("/")) ? null : type;
+        return isValidType(type) ? type : null;
     }
 
     /**

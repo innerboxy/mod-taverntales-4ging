@@ -24,7 +24,6 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -32,6 +31,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @JeiPlugin
 public class EquipmentForgeJeiPlugin implements IModPlugin {
@@ -66,8 +66,7 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
     private static List<LootBagDisplay> lootBagDisplays() {
         if (!JustEnoughResourcesCompat.isLoaded()) return List.of();
         Map<String, LootTable> tables = ClientLootBags.tables();
-        // 每次重算一份:创造栏内容会随数据包/配置变化,不能缓存
-        Comparator<LootBagDrop> byDrop = dropOrder(CreativeOrder.build());
+        Comparator<LootBagDrop> byDrop = dropOrder();
         return tables.entrySet().stream()
                 // 按类型名排序,免得 JEI 里的顺序随 HashMap 迭代顺序乱跳
                 .sorted(Map.Entry.comparingByKey())
@@ -76,19 +75,18 @@ public class EquipmentForgeJeiPlugin implements IModPlugin {
                             .stream().sorted(byDrop).toList();
                     return drops.isEmpty() ? null : new LootBagDisplay(e.getKey(), bagStack(e.getKey()), drops);
                 })
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .toList();
     }
 
     /**
      * 掉落排序:概率从大到小 → 稀有度(普通→史诗) → 创造模式物品栏顺序。
-     * 与锻造界面的排序同源(见 {@link CreativeOrder}),最后用物品 id 兜底保证顺序稳定。
+     * 后两级与锻造界面的排序同源(见 {@link CreativeOrder}),最后用物品 id 兜底保证顺序稳定。
      */
-    private static Comparator<LootBagDrop> dropOrder(Map<Item, Integer> creativeOrder) {
+    private static Comparator<LootBagDrop> dropOrder() {
         return Comparator
                 .comparingDouble((LootBagDrop d) -> d.chance()).reversed()
-                .thenComparingInt(d -> d.item().getRarity().ordinal())
-                .thenComparingInt(d -> creativeOrder.getOrDefault(d.item().getItem(), Integer.MAX_VALUE))
+                .thenComparing(LootBagDrop::item, CreativeOrder.comparator())
                 .thenComparing(d -> BuiltInRegistries.ITEM.getKey(d.item().getItem()).toString());
     }
 

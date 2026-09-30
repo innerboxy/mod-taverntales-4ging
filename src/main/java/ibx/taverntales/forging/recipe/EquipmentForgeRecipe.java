@@ -34,10 +34,10 @@ import java.util.Optional;
 
 /**
  * 装备锻造配方:材料直接取自玩家背包(主背包 + 副手),不占用容器格子。
- * 数据包格式见 data/wmserver/recipe/ 下的示例。
+ * 数据包格式见 README,内置配方在 data/taverntales_4ging/recipe/equipment_forge/ 下。
  */
 public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
-    /** 分类 id,对应数据包注册表 taverntales_4ging:equipment_category 中的某个分类 */
+    /** 分类 id,对应数据包注册表 minecraft:category 中的某个分类(见 {@link EquipmentCategoryDefinition}) */
     private final Identifier category;
     private final List<SizedIngredient> materials;
     private final ItemStackTemplate result;
@@ -68,25 +68,21 @@ public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
         return resultView;
     }
 
-    /** 材料的全部可选物品(数量已设为所需数),供界面轮换展示与 JEI 使用;标签材料展开为标签内所有物品 */
-    public static List<ItemStack> displayStacks(SizedIngredient material) {
-        return material.ingredient().items().map(item -> new ItemStack(item, material.count())).toList();
-    }
-
-    /** 26.1 起副手不再是 Inventory 的公开列表,而是装备槽里的一格;返回的是槽内实物,可直接扣减 */
-    private static ItemStack offhand(Inventory inventory) {
-        return inventory.getItem(Inventory.SLOT_OFFHAND);
+    /**
+     * 可用作材料的物品:主背包 + 副手,再接上 extraStacks(如超越维度网络快照),按消耗优先级排列。
+     * 26.1 起副手不再是 Inventory 的公开列表,而是装备槽里的一格。背包部分是槽内实物,可直接扣减。
+     */
+    public static List<ItemStack> availableStacks(Inventory inventory, List<ItemStack> extraStacks) {
+        List<ItemStack> stacks = new ArrayList<>(inventory.getNonEquipmentItems());
+        stacks.add(inventory.getItem(Inventory.SLOT_OFFHAND));
+        stacks.addAll(extraStacks);
+        return stacks;
     }
 
     /** 背包(主背包 + 副手)与额外物品列表(如超越维度网络快照)中与该材料匹配的物品总数 */
     public static int countMatching(Inventory inventory, List<ItemStack> extraStacks, Ingredient ingredient) {
         long total = 0;
-        for (ItemStack stack : inventory.getNonEquipmentItems()) {
-            if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
-        }
-        ItemStack offhand = offhand(inventory);
-        if (!offhand.isEmpty() && ingredient.test(offhand)) total += offhand.getCount();
-        for (ItemStack stack : extraStacks) {
+        for (ItemStack stack : availableStacks(inventory, extraStacks)) {
             if (!stack.isEmpty() && ingredient.test(stack)) total += stack.getCount();
         }
         return (int) Math.min(total, Integer.MAX_VALUE);
@@ -94,10 +90,13 @@ public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
 
     /** 材料是否全部足够,extraStacks 为背包之外可用的物品(如超越维度网络快照) */
     public boolean canCraft(Inventory inventory, List<ItemStack> extraStacks) {
-        // 逐项扣减快照,避免两种材料匹配同一批物品时重复计数
-        List<ItemStack> snapshot = snapshot(inventory, extraStacks);
+        // 在副本上逐项扣减,避免两种材料匹配同一批物品时重复计数
+        List<ItemStack> snapshot = availableStacks(inventory, extraStacks).stream()
+                .filter(stack -> !stack.isEmpty())
+                .map(ItemStack::copy)
+                .toList();
         for (SizedIngredient material : materials) {
-            if (takeFrom(snapshot, material) < material.count()) return false;
+            if (shrinkMatching(snapshot, material.ingredient(), material.count()) < material.count()) return false;
         }
         return true;
     }
@@ -110,37 +109,15 @@ public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
         Inventory inventory = player.getInventory();
         List<ItemStack> netItems = BeyondDimensionsCompat.getStoredItems(player);
         if (!canCraft(inventory, netItems)) return false;
+        List<ItemStack> inventoryStacks = availableStacks(inventory, List.of());
         for (SizedIngredient material : materials) {
-            int needed = material.count();
-            needed -= shrinkMatching(inventory.getNonEquipmentItems(), material.ingredient(), needed);
-            if (needed > 0) needed -= shrinkMatching(List.of(offhand(inventory)), material.ingredient(), needed);
+            int needed = material.count() - shrinkMatching(inventoryStacks, material.ingredient(), material.count());
             if (needed > 0) BeyondDimensionsCompat.extractMatching(player, material.ingredient(), needed);
         }
         return true;
     }
 
-    private static List<ItemStack> snapshot(Inventory inventory, List<ItemStack> extraStacks) {
-        List<ItemStack> copies = new ArrayList<>();
-        inventory.getNonEquipmentItems().forEach(s -> { if (!s.isEmpty()) copies.add(s.copy()); });
-        ItemStack offhand = offhand(inventory);
-        if (!offhand.isEmpty()) copies.add(offhand.copy());
-        extraStacks.forEach(s -> { if (!s.isEmpty()) copies.add(s.copy()); });
-        return copies;
-    }
-
-    private static int takeFrom(List<ItemStack> stacks, SizedIngredient material) {
-        int taken = 0;
-        for (ItemStack stack : stacks) {
-            if (taken >= material.count()) break;
-            if (!stack.isEmpty() && material.ingredient().test(stack)) {
-                int take = Math.min(stack.getCount(), material.count() - taken);
-                stack.shrink(take);
-                taken += take;
-            }
-        }
-        return taken;
-    }
-
+    /** 从 stacks 中就地扣减至多 needed 个匹配物品,返回实际扣减数 */
     private static int shrinkMatching(List<ItemStack> stacks, Ingredient ingredient, int needed) {
         int removed = 0;
         for (ItemStack stack : stacks) {

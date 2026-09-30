@@ -150,7 +150,7 @@ The left-hand category tabs are driven by a data-pack registry.
 | `order` | No | `0` | Top-to-bottom order; smaller is higher. Ties break by category id alphabetically. |
 | `icon` | No | `minecraft:book` | Tab icon item id. May point at an item from an optional mod — if that item doesn't exist, it falls back (see below). |
 
-**Icon fallback**: if the item given by `icon` isn't in the registry (e.g. the corresponding mod isn't installed), the built-in categories fall back to their respective vanilla icons (magic weapons → Knowledge Book, curio → Elytra, the rest → same as their own icon); every other category falls back to a book.
+**Icon fallback**: if the item given by `icon` isn't in the registry (e.g. the corresponding mod isn't installed), the tab falls back to a book.
 
 **The "All" tab is built in**, always pinned to the top, and cannot be configured via data pack.
 

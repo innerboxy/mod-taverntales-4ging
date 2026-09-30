@@ -4,6 +4,7 @@ import com.mojang.serialization.MapCodec;
 import ibx.taverntales.forging.menu.EquipmentForgeMenu;
 import ibx.taverntales.forging.network.ModNetworking;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -25,7 +26,7 @@ public class EquipmentForgeBlock extends HorizontalDirectionalBlock {
 
     public EquipmentForgeBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, net.minecraft.core.Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
     }
 
     @Override

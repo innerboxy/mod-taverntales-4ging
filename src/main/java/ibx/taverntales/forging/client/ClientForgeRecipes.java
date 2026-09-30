@@ -16,7 +16,6 @@ import java.util.List;
 /**
  * 客户端缓存:服务端同步来的锻造配方。
  *
- * <p>1.21.2 起原版不再把配方整体同步给客户端,{@code level.getRecipeManager()} 在客户端拿不到本模组配方。
  * 服务端在 OnDatapackSyncEvent 里请求 NeoForge 代发(见 ModNetworking#onDatapackSync),
  * 登录与每次 /reload 后都会触发 {@link RecipesReceivedEvent}。锻造界面与 JEI 都从这里读。
  */

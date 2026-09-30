@@ -1,11 +1,11 @@
 package ibx.taverntales.forging.compat.jei;
 
-import ibx.taverntales.forging.client.screen.EquipmentForgeScreen;
 import ibx.taverntales.forging.recipe.EquipmentCategoryDefinition;
 import ibx.taverntales.forging.recipe.EquipmentForgeRecipe;
 import ibx.taverntales.forging.registry.ModBlocks;
 import ibx.taverntales.forging.registry.ModRegistries;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -14,6 +14,7 @@ import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.neoforge.common.crafting.SizedIngredient;
@@ -79,11 +80,19 @@ public class EquipmentForgeRecipeCategory extends AbstractRecipeCategory<RecipeH
             // 行优先:每行填满 INPUT_COLS 格再换下一行
             int x = MAT_X + (i % INPUT_COLS) * 18;
             int y = MAT_Y + (i / INPUT_COLS) * 18;
-            builder.addInputSlot(x, y)
-                    .setStandardSlotBackground()
-                    // 已按 count 设置堆叠数量,标签材料展示全部可选项
-                    .addItemStacks(EquipmentForgeRecipe.displayStacks(materials.get(i)));
+            IRecipeSlotBuilder slot = builder.addInputSlot(x, y).setStandardSlotBackground();
+            slot.addItemStacks(displayStacks(materials.get(i), slot.getContextMap()));
         }
+    }
+
+    /**
+     * 材料的全部可选物品(数量已设为所需数);标签材料展开为标签内所有物品。
+     * 按 SlotDisplay 解析(26.1 起 Ingredient#items 已过时),context 取自 JEI 槽位的 getContextMap()。
+     */
+    private static List<ItemStack> displayStacks(SizedIngredient material, ContextMap context) {
+        return material.ingredient().display().resolveForStacks(context).stream()
+                .map(stack -> stack.copyWithCount(material.count()))
+                .toList();
     }
 
     @Override
@@ -115,7 +124,7 @@ public class EquipmentForgeRecipeCategory extends AbstractRecipeCategory<RecipeH
     /** 配方所属分类的图标;分类未在数据包注册表中定义时为空 */
     private static ItemStack categoryIcon(RecipeHolder<EquipmentForgeRecipe> holder) {
         return categoryDef(holder)
-                .map(def -> EquipmentForgeScreen.categoryIcon(holder.value().category(), def))
+                .map(EquipmentCategoryDefinition::iconStack)
                 .orElse(ItemStack.EMPTY);
     }
 
