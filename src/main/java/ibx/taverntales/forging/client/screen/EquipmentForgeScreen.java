@@ -111,17 +111,22 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final int SEARCH_W = FILTER_X - 3 - SEARCH_X;
     private static final int SEARCH_H = 14;
 
-    /** 铭牌(烘焙在底图里):与搜索框同高,显示正在锻造的装备名 */
-    private static final int NAMEPLATE_X = RIGHT_X - 1;
-    private static final int NAMEPLATE_W = RIGHT_WIDTH + 2;
-    private static final int NAME_X = NAMEPLATE_X + 5;
-    private static final int NAME_Y = SEARCH_Y + (SEARCH_H - 8) / 2;
-
-    /** 清除所选按钮(红晶):嵌在铭牌右端 */
+    /** 清除所选按钮(红晶):在铭牌右侧框外,右缘与材料框外缘对齐,与左栏的过滤开关对称 */
     private static final int CLEAR_W = 11;
     private static final int CLEAR_H = 10;
-    private static final int CLEAR_X = RIGHT_X + RIGHT_WIDTH - CLEAR_W - 1;
+    private static final int CLEAR_X = RIGHT_X + RIGHT_WIDTH + 2 - CLEAR_W;
     private static final int CLEAR_Y = SEARCH_Y + 2;
+
+    /**
+     * 铭牌(烘焙在底图里):与搜索框同高,显示正在锻造的装备名。
+     * 金边左缘与下方材料框的金边对齐,右端外框与清除按钮隔 2px
+     */
+    private static final int NAMEPLATE_X = RIGHT_X - 2;
+    private static final int NAMEPLATE_W = CLEAR_X - 3 - NAMEPLATE_X;
+    private static final int NAME_X = NAMEPLATE_X + 5;
+    private static final int NAME_Y = SEARCH_Y + (SEARCH_H - 8) / 2;
+    /** 装备名的右边界(不含):铭牌内框右缘 */
+    private static final int NAME_RIGHT = NAMEPLATE_X + NAMEPLATE_W - 3;
 
     /** 左侧分类子标签,顶部比搜索框上缘高 5px */
     private static final int TAB_SIZE = 20;
@@ -566,17 +571,16 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         return inRect(mouseX, mouseY, leftPos + FILTER_X, topPos + FILTER_Y, FILTER_W, FILTER_H);
     }
 
-    /** 铭牌:显示选中装备名(过长时原版式来回滚动),选中时右端出现红晶清除按钮 */
+    /** 铭牌:显示选中装备名(过长时原版式来回滚动),选中时铭牌右侧出现红晶清除按钮 */
     private void renderNameplate(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int x = leftPos + NAME_X;
         int y = topPos + NAME_Y;
         if (selected == null) {
-            int maxWidth = NAMEPLATE_X + NAMEPLATE_W - 3 - NAME_X;
-            graphics.text(font, fitWidth(NO_SELECTION.getString(), maxWidth), x, y, COLOR_TEXT_DIM, false);
+            graphics.text(font, fitWidth(NO_SELECTION.getString(), NAME_RIGHT - NAME_X), x, y, COLOR_TEXT_DIM, false);
             return;
         }
         Component name = selected.value().resultView().getHoverName().copy().withColor(COLOR_PARCHMENT & 0xFFFFFF);
-        int right = leftPos + CLEAR_X - 2;
+        int right = leftPos + NAME_RIGHT;
         if (font.width(name) <= right - x) {
             graphics.text(font, name, x, y, COLOR_PARCHMENT, true);
         } else {
@@ -630,7 +634,8 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
         // 贴图宽 23:选中的标签多出 3px 盖住主面板左缘,与面板打通;未选中的标签右侧 2px 透明
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, active ? TAB_SELECTED_SPRITE : TAB_SPRITE,
                 x, y, TAB_SPRITE_W, TAB_SIZE);
-        int iconX = x + TAB_ICON_INSET + (active ? 1 : 0);
+        // 标签左缘是描边 + 1px 高光,右缘只有描边:图标右移 1px 才在高光内侧居中
+        int iconX = x + TAB_ICON_INSET + 1 + (active ? 1 : 0);
         int iconY = y + TAB_ICON_INSET;
         graphics.item(tab.icon(), iconX, iconY);
         if (!active) {
