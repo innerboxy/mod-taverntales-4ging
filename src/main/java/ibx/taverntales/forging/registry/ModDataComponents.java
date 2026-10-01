@@ -15,12 +15,12 @@ public class ModDataComponents {
 
     /**
      * 战利品袋类型:裸字符串(如 {@code "iron_golem"}),固定解析为战利品表
-     * {@code taverntales:loot_bag/<值>},即 {@code data/taverntales/loot_table/loot_bag/<值>.json}。
+     * {@code taverntales_4ging:loot_bag/<值>},即 {@code data/taverntales_4ging/loot_table/loot_bag/<值>.json}。
      * 组件不存在或为空串即视为空袋。
-     * <p>显示名与颜色一并来自语言文件 {@code loot_bag.taverntales.<值>}(颜色写成译文里的
+     * <p>显示名与颜色一并来自语言文件 {@code loot_bag.taverntales_4ging.<值>}(颜色写成译文里的
      * § 格式码),所以这是袋子唯一需要的组件。
      * <p>可直接用组件语法给予:
-     * {@code /give @s taverntales:loot_bag[taverntales:loot_bag_type="iron_golem"]}
+     * {@code /give @s taverntales_4ging:loot_bag[taverntales_4ging:loot_bag_type="iron_golem"]}
      */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<String>> LOOT_BAG_TYPE =
             COMPONENTS.registerComponentType("loot_bag_type", builder -> builder

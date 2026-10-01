@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:flint",
+      "count": 4
+    },
+    {
+      "ingredient": "minecraft:iron_ingot",
+      "count": 6
+    }
+  ],
+  "result": {
+    "id": "minecraft:chainmail_chestplate",
+    "count": 1
+  }
+}

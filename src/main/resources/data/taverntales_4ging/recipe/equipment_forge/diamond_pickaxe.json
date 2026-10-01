@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "ingredient": "#minecraft:planks",
+      "count": 2
+    },
+    {
+      "ingredient": "minecraft:diamond",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:diamond_pickaxe",
+    "count": 1
+  }
+}

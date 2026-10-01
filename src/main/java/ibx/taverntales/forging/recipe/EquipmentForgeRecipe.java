@@ -34,7 +34,7 @@ import java.util.Optional;
 
 /**
  * 装备锻造配方:材料直接取自玩家背包(主背包 + 副手),不占用容器格子。
- * 数据包格式见 README,内置配方在 data/taverntales/recipe/equipment_forge/ 下。
+ * 数据包格式见 README,内置配方在 data/taverntales_4ging/recipe/equipment_forge/ 下。
  */
 public class EquipmentForgeRecipe implements Recipe<RecipeInput> {
     /** 分类 id,对应数据包注册表 minecraft:category 中的某个分类(见 {@link EquipmentCategoryDefinition}) */

@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:tool",
+  "materials": [
+    {
+      "ingredient": "#minecraft:planks",
+      "count": 1
+    },
+    {
+      "ingredient": "#minecraft:stone_tool_materials",
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "minecraft:stone_shovel",
+    "count": 1
+  }
+}

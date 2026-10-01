@@ -17,7 +17,7 @@ import net.minecraft.world.item.Items;
  * <pre>
  * data/&lt;命名空间&gt;/category/melee.json
  * {
- *   "name": { "translate": "category.taverntales.melee" },
+ *   "name": { "translate": "category.taverntales_4ging.melee" },
  *   "order": 0,                          // 可选,默认 0
  *   "icon": "minecraft:iron_sword"       // 可选,默认 minecraft:book
  * }

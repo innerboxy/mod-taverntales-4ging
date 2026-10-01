@@ -1,9 +1,0 @@
-{
-  "model": {
-    "type": "taverntales:loot_bag",
-    "fallback": {
-      "type": "minecraft:model",
-      "model": "taverntales:item/loot_bag"
-    }
-  }
-}

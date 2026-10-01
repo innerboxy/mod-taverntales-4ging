@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:melee",
+  "materials": [
+    {
+      "ingredient": "#minecraft:planks",
+      "count": 1
+    },
+    {
+      "ingredient": "minecraft:copper_ingot",
+      "count": 1
+    }
+  ],
+  "result": {
+    "id": "minecraft:copper_spear",
+    "count": 1
+  }
+}

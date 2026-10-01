@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * 战利品袋的按类型换皮:资源包往 {@code assets/taverntales/models/item/loot_bag/} 丢一个
+ * 战利品袋的按类型换皮:资源包往 {@code assets/taverntales_4ging/models/item/loot_bag/} 丢一个
  * {@code <类型>.json} 就生效,不需要改代码,也不需要数据包配合。
  *
  * <p><b>为什么由资源包决定而非数据包</b>:袋子类型是数据包(服务端)定义的,而模型烘焙发生在资源重载时——
@@ -97,7 +97,7 @@ public final class LootBagItemModel implements ItemModel {
     }
 
     /**
-     * {@code items/loot_bag.json} 里 {@code "type": "taverntales:loot_bag"} 的解码结果。
+     * {@code items/loot_bag.json} 里 {@code "type": "taverntales_4ging:loot_bag"} 的解码结果。
      * 扫描在 resolveDependencies 与 bake 各做一次:前者把类型模型登记进加载队列(不登记就不会被加载),
      * 后者取烘焙结果。同一次资源重载内资源包不变,两次结果一致。
      */

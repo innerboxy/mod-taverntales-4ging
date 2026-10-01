@@ -168,12 +168,12 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     private static final int OVERLAY_OUTPUT_SHORT = 0x96211A33;
     private static final int OVERLAY_TAB_INACTIVE = 0x50211A33;
 
-    private static final Component CRAFT_LABEL = Component.translatable("gui.taverntales.craft");
-    private static final Component SEARCH_HINT = Component.translatable("gui.taverntales.search");
-    private static final Component SELECT_HINT = Component.translatable("gui.taverntales.select_hint");
-    private static final Component NO_SELECTION = Component.translatable("gui.taverntales.no_selection");
-    private static final Component FILTER_ALL_LABEL = Component.translatable("gui.taverntales.filter_all");
-    private static final Component FILTER_CRAFTABLE_LABEL = Component.translatable("gui.taverntales.filter_craftable");
+    private static final Component CRAFT_LABEL = Component.translatable("gui.taverntales_4ging.craft");
+    private static final Component SEARCH_HINT = Component.translatable("gui.taverntales_4ging.search");
+    private static final Component SELECT_HINT = Component.translatable("gui.taverntales_4ging.select_hint");
+    private static final Component NO_SELECTION = Component.translatable("gui.taverntales_4ging.no_selection");
+    private static final Component FILTER_ALL_LABEL = Component.translatable("gui.taverntales_4ging.filter_all");
+    private static final Component FILTER_CRAFTABLE_LABEL = Component.translatable("gui.taverntales_4ging.filter_craftable");
 
     private static final Identifier BACKGROUND = Identifier.fromNamespaceAndPath(
             TavernTalesEquipmentForge.MODID, "textures/gui/equipment_forge.png");
@@ -212,7 +212,7 @@ public class EquipmentForgeScreen extends AbstractContainerScreen<EquipmentForge
     }
 
     /** 内置"全部"标签的翻译名;图标在 buildTabs 里现造——26.1 起类加载时注册表未就绪,静态字段不能 new ItemStack */
-    private static final Component ALL_LABEL = Component.translatable("category.taverntales.all");
+    private static final Component ALL_LABEL = Component.translatable("category.taverntales_4ging.all");
 
     /** 分类子标签,category 为 null 表示"全部" */
     private record CategoryTab(Identifier category, ItemStack icon, Component label) {}

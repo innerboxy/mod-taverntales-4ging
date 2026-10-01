@@ -1,0 +1,27 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:diamond",
+      "count": 9
+    },
+    {
+      "ingredient": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "ingredient": "minecraft:gold_ingot",
+      "count": 2
+    }
+  ],
+  "result": {
+    "id": "minecraft:netherite_boots",
+    "count": 1
+  }
+}

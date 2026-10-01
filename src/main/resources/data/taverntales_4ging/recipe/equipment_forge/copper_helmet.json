@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales_4ging:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales_4ging:equipment_forge",
+  "category": "taverntales_4ging:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:copper_ingot",
+      "count": 5
+    }
+  ],
+  "result": {
+    "id": "minecraft:copper_helmet",
+    "count": 1
+  }
+}

@@ -54,7 +54,7 @@ public class EquipmentForgeRecipeCategory extends AbstractRecipeCategory<RecipeH
     /** @param maxMaterials 所有已加载配方中最多的材料数,用于决定分类高度 */
     public EquipmentForgeRecipeCategory(IGuiHelper guiHelper, int maxMaterials) {
         super(EquipmentForgeJeiPlugin.EQUIPMENT_FORGE,
-                Component.translatable("jei.taverntales.equipment_forge"),
+                Component.translatable("jei.taverntales_4ging.equipment_forge"),
                 guiHelper.createDrawableItemLike(ModBlocks.EQUIPMENT_FORGE.get()),
                 WIDTH, heightFor(maxMaterials));
         this.rows = rowsFor(maxMaterials);
@@ -118,7 +118,7 @@ public class EquipmentForgeRecipeCategory extends AbstractRecipeCategory<RecipeH
             return;
         }
         categoryDef(holder).ifPresent(def -> tooltip.add(
-                Component.translatable("jei.taverntales.category", def.name())));
+                Component.translatable("jei.taverntales_4ging.category", def.name())));
     }
 
     /** 配方所属分类的图标;分类未在数据包注册表中定义时为空 */
