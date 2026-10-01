@@ -8,7 +8,7 @@ A Minecraft **1.21.1** / **NeoForge** mod that gives TavernTales a data-driven e
 
 ## 1. Overview
 
-This mod adds an **Equipment Forge** (`taverntales_4ging:equipment_forge`) — a crafting block built around "pick a recipe, then craft it" that replaces the fiddly item placement of the vanilla crafting table for gear.
+This mod adds an **Equipment Forge** (`taverntales:equipment_forge`) — a crafting block built around "pick a recipe, then craft it" that replaces the fiddly item placement of the vanilla crafting table for gear.
 
 ### Key features
 
@@ -24,7 +24,7 @@ This mod adds an **Equipment Forge** (`taverntales_4ging:equipment_forge`) — a
 
 ### Loot Bag
 
-The mod also provides a standalone item — the **Loot Bag** (`taverntales_4ging:loot_bag`) — opened by right-click, whose contents are defined entirely by a data-pack loot table (see [4](#4-loot-bag)).
+The mod also provides a standalone item — the **Loot Bag** (`taverntales:loot_bag`) — opened by right-click, whose contents are defined entirely by a data-pack loot table (see [4](#4-loot-bag)).
 
 - **One bag, one table**: the bag's kind is stored in an item component and maps to a loot table of the same name, so you can give every boss its own dedicated bag.
 - **Protected as a dropped item**: immune to fire/lava/explosions, never despawns, and has an always-on glowing outline (visible through walls), so it's fine to drop it right on the battlefield.
@@ -56,7 +56,7 @@ Au    Au          CT = Crafting Table
 
 ## 2. Configuration
 
-The config type is **COMMON**, located at `config/taverntales_4ging-common.toml`.
+The config type is **COMMON**, located at `config/taverntales-common.toml`.
 
 ```toml
 #Remove vanilla crafting-table recipes superseded by the Equipment Forge, so those items can only be made at the forge.
@@ -87,7 +87,7 @@ enableDefaultRecipes = true
 
 **`enableDefaultCategories`**
 
-- When disabled, the 7 built-in categories such as `taverntales_4ging:melee` are no longer loaded; only the built-in "All" tab remains, and categories can be defined by the data pack.
+- When disabled, the 7 built-in categories such as `taverntales:melee` are no longer loaded; only the built-in "All" tab remains, and categories can be defined by the data pack.
 - Note: if you keep the default recipes at the same time, the categories those recipes reference won't exist, so they **only appear under the "All" tab**. Usually used together with `enableDefaultRecipes = false`.
 
 **`enableDefaultRecipes`**
@@ -105,12 +105,12 @@ The mod involves three kinds of data files, which modpacks can override or add t
 ### 3.1 Forge recipes
 
 - **Location**: `data/<namespace>/recipe/**/*.json` (can go in any subfolder; this mod puts them under `recipe/equipment_forge/`)
-- **Type**: `taverntales_4ging:equipment_forge`
+- **Type**: `taverntales:equipment_forge`
 
 ```json
 {
-  "type": "taverntales_4ging:equipment_forge",
-  "category": "taverntales_4ging:melee",
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:melee",
   "materials": [
     { "ingredient": "#minecraft:planks", "count": 2 },
     { "ingredient": "minecraft:diamond", "count": 3 }
@@ -121,7 +121,7 @@ The mod involves three kinds of data files, which modpacks can override or add t
 
 | Field | Required | Description |
 | --- | --- | --- |
-| `category` | Yes | Category id, **must include the full namespace** (e.g. `taverntales_4ging:melee`). If it references an undefined category, the recipe only appears under the "All" tab and a debug log line is printed. |
+| `category` | Yes | Category id, **must include the full namespace** (e.g. `taverntales:melee`). If it references an undefined category, the recipe only appears under the "All" tab and a debug log line is printed. |
 | `materials` | Yes | Material list. Each entry is NeoForge's `{ "ingredient": <vanilla ingredient>, "count": <amount> }` (`count` defaults to 1). `ingredient` is an item id (`"minecraft:diamond"`), a `#`-prefixed tag (`"#minecraft:planks"`), or an array of those. The count is the **total amount required**, unrelated to any placement shape.<br>The legacy `{ "item": <item id> }` / `{ "tag": <tag id> }` form is still accepted, but new data packs should use `ingredient`. |
 | `result` | Yes | The product, `{ "id": <item id>, "count": <amount> }`. |
 
@@ -134,11 +134,11 @@ The left-hand category tabs are driven by a data-pack registry.
 
 - **Registry**: `minecraft:category`
 - **Location**: `data/<namespace>/category/*.json`
-- **Category id**: the file's ResourceLocation. For example `data/taverntales_4ging/category/melee.json` → `taverntales_4ging:melee`, and recipes are grouped by this id.
+- **Category id**: the file's ResourceLocation. For example `data/taverntales/category/melee.json` → `taverntales:melee`, and recipes are grouped by this id.
 
 ```json
 {
-  "name": { "translate": "category.taverntales_4ging.melee" },
+  "name": { "translate": "category.taverntales.melee" },
   "order": 0,
   "icon": "minecraft:iron_sword"
 }
@@ -158,13 +158,13 @@ Built-in categories:
 
 | id | order | Icon |
 | --- | --- |------|
-| `taverntales_4ging:melee` | 0 | Iron Sword |
-| `taverntales_4ging:ranged` | 1 | Bow |
-| `taverntales_4ging:magic` | 2 | Knowledge Book |
-| `taverntales_4ging:tool` | 3 | Diamond Pickaxe |
-| `taverntales_4ging:armor` | 4 | Golden Chestplate |
-| `taverntales_4ging:shield` | 5 | Shield |
-| `taverntales_4ging:curio` | 6 | Elytra |
+| `taverntales:melee` | 0 | Iron Sword |
+| `taverntales:ranged` | 1 | Bow |
+| `taverntales:magic` | 2 | Knowledge Book |
+| `taverntales:tool` | 3 | Diamond Pickaxe |
+| `taverntales:armor` | 4 | Golden Chestplate |
+| `taverntales:shield` | 5 | Shield |
+| `taverntales:curio` | 6 | Elytra |
 
 ### 3.3 Data-pack conditions
 
@@ -172,9 +172,9 @@ The mod registers three data-pack conditions, one per config option. NeoForge's 
 
 | Condition id | When it returns `true` | Used on |
 | --- | --- | --- |
-| `taverntales_4ging:vanilla_recipe_enabled` | When `removeVanillaRecipes = false` | The mod's override files for vanilla recipes |
-| `taverntales_4ging:default_recipes_enabled` | When `enableDefaultRecipes = true` | The mod's 77 built-in forge recipes |
-| `taverntales_4ging:default_categories_enabled` | When `enableDefaultCategories = true` | The mod's 7 built-in category definitions |
+| `taverntales:vanilla_recipe_enabled` | When `removeVanillaRecipes = false` | The mod's override files for vanilla recipes |
+| `taverntales:default_recipes_enabled` | When `enableDefaultRecipes = true` | The mod's 77 built-in forge recipes |
+| `taverntales:default_categories_enabled` | When `enableDefaultCategories = true` | The mod's 7 built-in category definitions |
 
 > Conditions aren't limited to recipes — NeoForge wires condition parsing into data-pack registries too, so category definitions (3.2) also support `neoforge:conditions`.
 
@@ -187,7 +187,7 @@ Since NeoForge's rule is "a recipe loads only when the condition is true", attac
 ```json
 {
   "neoforge:conditions": [
-    { "type": "taverntales_4ging:vanilla_recipe_enabled" }
+    { "type": "taverntales:vanilla_recipe_enabled" }
   ],
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
@@ -209,7 +209,7 @@ Placing this at `data/minecraft/recipe/wooden_sword.json` overrides the vanilla 
 
 ## 4. Loot Bag
 
-The Loot Bag (`taverntales_4ging:loot_bag`) is a "right-click to open" item. It contains no drop content itself — **the bag is just a pointer** to a vanilla loot table, and that table decides everything it drops.
+The Loot Bag (`taverntales:loot_bag`) is a "right-click to open" item. It contains no drop content itself — **the bag is just a pointer** to a vanilla loot table, and that table decides everything it drops.
 
 ### 4.1 The three parts
 
@@ -217,24 +217,24 @@ A working bag is made of three things, none of which can be missing:
 
 | # | Thing | Location | Example (Iron Golem bag) |
 | --- | --- | --- | --- |
-| 1 | **Item component**, deciding which kind of bag this is | The item itself | `taverntales_4ging:loot_bag_type` = `"iron_golem"` |
-| 2 | **Loot table**, deciding what drops | Data pack | `data/taverntales_4ging/loot_table/loot_bag/iron_golem.json` |
-| 3 | **Translation**, deciding the tooltip's name and color | Resource pack / mod lang file | `loot_bag.taverntales_4ging.iron_golem` = `"§fIron Golem"` |
+| 1 | **Item component**, deciding which kind of bag this is | The item itself | `taverntales:loot_bag_type` = `"iron_golem"` |
+| 2 | **Loot table**, deciding what drops | Data pack | `data/taverntales/loot_table/loot_bag/iron_golem.json` |
+| 3 | **Translation**, deciding the tooltip's name and color | Resource pack / mod lang file | `loot_bag.taverntales.iron_golem` = `"§fIron Golem"` |
 
 The three are tied together by the **bare string** in the component. A component value of `"iron_golem"` is **fixedly** expanded into:
 
-- Loot table id → `taverntales_4ging:loot_bag/iron_golem`
-- Translation key → `loot_bag.taverntales_4ging.iron_golem`
+- Loot table id → `taverntales:loot_bag/iron_golem`
+- Translation key → `loot_bag.taverntales.iron_golem`
 
-> The component value **cannot include a namespace or a directory** (you can't write `mypack:xxx` or `boss/xxx`). Every bag's table must live in the `loot_bag/` folder of the `taverntales_4ging` namespace — but **any data pack can drop files into this path**; it doesn't have to be this mod's jar.
+> The component value **cannot include a namespace or a directory** (you can't write `mypack:xxx` or `boss/xxx`). Every bag's table must live in the `loot_bag/` folder of the `taverntales` namespace — but **any data pack can drop files into this path**; it doesn't have to be this mod's jar.
 
 ### 4.2 Step by step: create an "Ender Dragon bag"
 
-**Step 1**, create the table file `data/taverntales_4ging/loot_table/loot_bag/ender_dragon.json`:
+**Step 1**, create the table file `data/taverntales/loot_table/loot_bag/ender_dragon.json`:
 
 ```json
 {
-  "type": "taverntales_4ging:loot_bag",
+  "type": "taverntales:loot_bag",
   "pools": [
     {
       "rolls": 1,
@@ -250,14 +250,14 @@ The three are tied together by the **bare string** in the component. A component
 
 ```json
 {
-  "loot_bag.taverntales_4ging.ender_dragon": "§5Ender Dragon"
+  "loot_bag.taverntales.ender_dragon": "§5Ender Dragon"
 }
 ```
 
 **Step 3**, grant it:
 
 ```
-/give @s taverntales_4ging:loot_bag[taverntales_4ging:loot_bag_type="ender_dragon"] 1
+/give @s taverntales:loot_bag[taverntales:loot_bag_type="ender_dragon"] 1
 ```
 
 After editing the data pack, `/reload` applies it; a new translation requires re-entering the world or pressing F3+T to reload resources.
@@ -266,7 +266,7 @@ After editing the data pack, `/reload` applies it; a new translation requires re
 
 | Component | Type | Description |
 | --- | --- | --- |
-| `taverntales_4ging:loot_bag_type` | string | The bag kind. **This is the bag's only component.** Absent, empty string, or missing → empty bag: can't be right-clicked, tooltip shows "empty". |
+| `taverntales:loot_bag_type` | string | The bag kind. **This is the bag's only component.** Absent, empty string, or missing → empty bag: can't be right-clicked, tooltip shows "empty". |
 
 **The display name and color come entirely from the lang file**, with no automatic derivation:
 
@@ -275,7 +275,7 @@ After editing the data pack, `/reload` applies it; a new translation requires re
 
 > Because color goes through `§` codes, **only the 16 vanilla colors** are available; `#RRGGBB` is not supported. And each language's translation must carry its own color code.
 >
-> The "empty" hint uses the key `loot_bag.taverntales_4ging.null` — it's not called `.empty` in order to make room for a bag whose name really is `empty`.
+> The "empty" hint uses the key `loot_bag.taverntales.null` — it's not called `.empty` in order to make room for a bag whose name really is `empty`.
 
 ### 4.4 Traits of the dropped-item form
 
@@ -298,13 +298,13 @@ Different kinds of bags can look different. This is **decided by the resource pa
 assets/<namespace>/models/item/loot_bag/<type>.json
 ```
 
-For example, to reskin the Iron Golem bag, create `assets/taverntales_4ging/models/item/loot_bag/iron_golem.json`:
+For example, to reskin the Iron Golem bag, create `assets/taverntales/models/item/loot_bag/iron_golem.json`:
 
 ```json
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "taverntales_4ging:item/loot_bag/iron_golem"
+    "layer0": "taverntales:item/loot_bag/iron_golem"
   }
 }
 ```
@@ -349,16 +349,16 @@ This chapter is a hands-on guide to the `pools` inside a bag. This is the **vani
 
 ```json
 {
-  "type": "taverntales_4ging:loot_bag",
+  "type": "taverntales:loot_bag",
   "pools": [ ... ],
   "functions": [ ... ],
-  "random_sequence": "taverntales_4ging:loot_bag/iron_golem"
+  "random_sequence": "taverntales:loot_bag/iron_golem"
 }
 ```
 
 | Field | Required | Default | Description |
 | --- | --- | --- | --- |
-| `type` | No | `minecraft:generic` | The parameter set. **A bag's table must use `taverntales_4ging:loot_bag`**; see [5.7](#57-context-parameters-and-limits). |
+| `type` | No | `minecraft:generic` | The parameter set. **A bag's table must use `taverntales:loot_bag`**; see [5.7](#57-context-parameters-and-limits). |
 | `pools` | No | `[]` | The list of pools. Leave it out and you get an empty table (the bag opens but gives nothing). |
 | `functions` | No | `[]` | **Table-level functions**, applied to **every** item this table drops. |
 | `random_sequence` | No | — | Random-sequence id, used to make drop results reproducible within one save. Usually just fill in the table's own id; leaving it out is fine too. |
@@ -509,7 +509,7 @@ An entry with "random count + random enchantment" looks like this:
 
 This is the **one** place a bag's table differs from an ordinary loot table, and the section that needs the most attention.
 
-The information a loot table can read at runtime is decided by the **parameter set** (the table's `type` field). A chest table can read the chest position; a mob-drop table can read who the killer was and what weapon was used. A bag is opened by a player right-clicking, so the mod registers a dedicated parameter set `taverntales_4ging:loot_bag` that provides only two parameters:
+The information a loot table can read at runtime is decided by the **parameter set** (the table's `type` field). A chest table can read the chest position; a mob-drop table can read who the killer was and what weapon was used. A bag is opened by a player right-clicking, so the mod registers a dedicated parameter set `taverntales:loot_bag` that provides only two parameters:
 
 | Parameter | Content |
 | --- | --- |
@@ -566,15 +566,15 @@ Every other parameter (killer, weapon, block, damage source, explosion radius, �
 
 `minecraft:random_chance`, `minecraft:value_check`, `minecraft:time_check`, `minecraft:weather_check`, `minecraft:location_check` (checks the opening position), `minecraft:inverted`, `minecraft:any_of`, `minecraft:all_of`, `minecraft:reference`, and all the functions listed in the [5.6](#56-functions--process-what-dropped) table.
 
-> ⚠️ **A wrong `type` doesn't error.** If you misspell `"type"` as something like `taverntales_4ging:lootbag`, vanilla **won't** report any error and instead silently falls back to the `minecraft:generic` parameter set — which claims to "have every parameter", so the WARN above won't appear either, yet the bag may throw the moment it's opened. **When a table drops nothing, first check whether `type` is spelled correctly.**
+> ⚠️ **A wrong `type` doesn't error.** If you misspell `"type"` as something like `taverntales:lootbag`, vanilla **won't** report any error and instead silently falls back to the `minecraft:generic` parameter set — which claims to "have every parameter", so the WARN above won't appear either, yet the bag may throw the moment it's opened. **When a table drops nothing, first check whether `type` is spelled correctly.**
 
 ### 5.8 Full example: Iron Golem bag
 
-Putting the previous sections together, the complete table for an "Iron Golem bag" at `data/taverntales_4ging/loot_table/loot_bag/iron_golem.json` looks like this:
+Putting the previous sections together, the complete table for an "Iron Golem bag" at `data/taverntales/loot_table/loot_bag/iron_golem.json` looks like this:
 
 ```json
 {
-  "type": "taverntales_4ging:loot_bag",
+  "type": "taverntales:loot_bag",
   "pools": [
     {
       "rolls": 1,
@@ -625,18 +625,18 @@ Breaking it down piece by piece:
 The matching translation (`§f` = white):
 
 ```json
-"loot_bag.taverntales_4ging.iron_golem": "§fIron Golem"
+"loot_bag.taverntales.iron_golem": "§fIron Golem"
 ```
 
 The grant command:
 
 ```
-/give @s taverntales_4ging:loot_bag[taverntales_4ging:loot_bag_type="iron_golem"] 1
+/give @s taverntales:loot_bag[taverntales:loot_bag_type="iron_golem"] 1
 ```
 
 > To verify what a table drops before formally adding a bag, you don't have to open bags repeatedly — roll it directly with the vanilla command:
 > ```
-> /loot spawn ~ ~ ~ loot taverntales_4ging:loot_bag/iron_golem
+> /loot spawn ~ ~ ~ loot taverntales:loot_bag/iron_golem
 > ```
 
 > The Iron Golem bag above is only a **documentation example**. **The mod itself ships no finished bags** — which bags exist, what they drop, and what they look like is left entirely to the modpack. The mod only provides the item, the parameter set, and that fallback model.

@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:ranged",
+  "materials": [
+    {
+      "ingredient": "#minecraft:planks",
+      "count": 2
+    },
+    {
+      "ingredient": "minecraft:string",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:bow",
+    "count": 1
+  }
+}

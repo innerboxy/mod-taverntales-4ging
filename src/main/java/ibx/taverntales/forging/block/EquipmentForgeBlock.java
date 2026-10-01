@@ -22,7 +22,7 @@ import net.minecraft.world.phys.BlockHitResult;
 /** 装备锻造台:右键打开锻造界面 */
 public class EquipmentForgeBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<EquipmentForgeBlock> CODEC = simpleCodec(EquipmentForgeBlock::new);
-    private static final Component TITLE = Component.translatable("block.taverntales_4ging.equipment_forge");
+    private static final Component TITLE = Component.translatable("block.taverntales.equipment_forge");
 
     public EquipmentForgeBlock(Properties properties) {
         super(properties);

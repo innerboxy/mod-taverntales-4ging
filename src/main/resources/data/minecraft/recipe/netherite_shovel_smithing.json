@@ -1,7 +1,7 @@
 {
   "neoforge:conditions": [
     {
-      "type": "taverntales_4ging:vanilla_recipe_enabled"
+      "type": "taverntales:vanilla_recipe_enabled"
     }
   ],
   "type": "minecraft:smithing_transform",

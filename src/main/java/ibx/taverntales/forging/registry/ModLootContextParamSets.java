@@ -7,7 +7,7 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 /**
- * 战利品袋专用的战利品表参数集,即袋子表 JSON 里的 {@code "type": "taverntales_4ging:loot_bag"}。
+ * 战利品袋专用的战利品表参数集,即袋子表 JSON 里的 {@code "type": "taverntales:loot_bag"}。
  * 参数与原版 chest 集一致:只强制要求 ORIGIN(开袋位置),THIS_ENTITY(开袋玩家)可选,供条件/函数取用。
  */
 public class ModLootContextParamSets {

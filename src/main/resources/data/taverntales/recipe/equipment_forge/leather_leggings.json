@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:leather",
+      "count": 7
+    }
+  ],
+  "result": {
+    "id": "minecraft:leather_leggings",
+    "count": 1
+  }
+}

@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "taverntales_4ging:block/equipment_forge" },
-    "facing=east":  { "model": "taverntales_4ging:block/equipment_forge", "y": 90 },
-    "facing=south": { "model": "taverntales_4ging:block/equipment_forge", "y": 180 },
-    "facing=west":  { "model": "taverntales_4ging:block/equipment_forge", "y": 270 }
-  }
-}

@@ -35,14 +35,14 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
- * 战利品袋:{@code taverntales_4ging:loot_bag_type} 组件非空且能查到对应战利品表时,右键开袋获得战利品。
+ * 战利品袋:{@code taverntales:loot_bag_type} 组件非空且能查到对应战利品表时,右键开袋获得战利品。
  * 空袋不可使用,tooltip 显示"空"。
  */
 public class LootBagItem extends Item {
-    private static final Component EMPTY_LABEL = Component.translatable("loot_bag.taverntales_4ging.null");
+    private static final Component EMPTY_LABEL = Component.translatable("loot_bag.taverntales.null");
 
     /** 显示名的翻译键前缀,拼上组件里的裸字符串 */
-    private static final String NAME_KEY_PREFIX = "loot_bag.taverntales_4ging.";
+    private static final String NAME_KEY_PREFIX = "loot_bag.taverntales.";
 
     public LootBagItem(Properties properties) {
         super(properties);
@@ -134,7 +134,7 @@ public class LootBagItem extends Item {
     }
 
     /**
-     * 显示名只认语言文件 {@code loot_bag.taverntales_4ging.<type>},没有任何自动推导:
+     * 显示名只认语言文件 {@code loot_bag.taverntales.<type>},没有任何自动推导:
      * 加袋子就必须配译文。颜色也来自译文里的 § 格式码,故这里不附加任何样式。
      * 追加器对所有物品都会调用,非战利品袋直接跳过。
      */
@@ -148,7 +148,7 @@ public class LootBagItem extends Item {
     }
 
     /**
-     * 袋子种类的显示名。只认语言文件 {@code loot_bag.taverntales_4ging.<type>},颜色由译文里的
+     * 袋子种类的显示名。只认语言文件 {@code loot_bag.taverntales.<type>},颜色由译文里的
      * § 格式码自带,故不附加任何样式;没写译文(或 type 写错)则返回红色的原文,便于排错。
      * <p>JEI 分类也用它画袋子名,与 tooltip 保持一致。
      */

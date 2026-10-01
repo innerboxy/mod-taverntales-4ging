@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:diamond",
+      "count": 5
+    }
+  ],
+  "result": {
+    "id": "minecraft:diamond_helmet",
+    "count": 1
+  }
+}

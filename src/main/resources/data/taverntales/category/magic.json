@@ -1,0 +1,12 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_categories_enabled"
+    }
+  ],
+  "name": {
+    "translate": "category.taverntales.magic"
+  },
+  "order": 2,
+  "icon": "minecraft:knowledge_book"
+}

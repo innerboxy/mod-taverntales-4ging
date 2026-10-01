@@ -42,7 +42,7 @@ public final class LootBagTables {
 
     /**
      * 服务端:枚举当前数据包里所有袋子表。任何数据包往
-     * {@code data/taverntales_4ging/loot_table/loot_bag/} 塞的文件都会被收进来。
+     * {@code data/taverntales/loot_table/loot_bag/} 塞的文件都会被收进来。
      */
     public static Map<String, LootTable> collect(MinecraftServer server) {
         Map<String, LootTable> out = new HashMap<>();

@@ -1,0 +1,31 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:melee",
+  "materials": [
+    {
+      "ingredient": "#minecraft:planks",
+      "count": 2
+    },
+    {
+      "ingredient": "minecraft:netherite_ingot",
+      "count": 1
+    },
+    {
+      "ingredient": "minecraft:diamond",
+      "count": 8
+    },
+    {
+      "ingredient": "minecraft:gold_ingot",
+      "count": 3
+    }
+  ],
+  "result": {
+    "id": "minecraft:netherite_sword",
+    "count": 1
+  }
+}

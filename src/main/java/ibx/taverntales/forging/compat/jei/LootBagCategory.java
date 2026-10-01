@@ -45,7 +45,7 @@ public class LootBagCategory extends AbstractRecipeCategory<LootBagDisplay> {
 
     public LootBagCategory(IGuiHelper guiHelper, List<LootBagDisplay> displays) {
         super(EquipmentForgeJeiPlugin.LOOT_BAG,
-                Component.translatable("jei.taverntales_4ging.loot_bag"),
+                Component.translatable("jei.taverntales.loot_bag"),
                 guiHelper.createDrawableItemLike(ModItems.LOOT_BAG.get()),
                 widthFor(displays), heightFor(displays));
         this.rows = rowsFor(displays);
@@ -94,9 +94,9 @@ public class LootBagCategory extends AbstractRecipeCategory<LootBagDisplay> {
                     // 0 和 1 都只显示物品不画数字,上限交给 tooltip 说。
                     .add(drop.item().copyWithCount(Math.max(1, drop.min())))
                     .addRichTooltipCallback((view, tooltip) -> {
-                        tooltip.add(Component.translatable("jei.taverntales_4ging.loot_bag.chance",
+                        tooltip.add(Component.translatable("jei.taverntales.loot_bag.chance",
                                 formatChance(drop.chance())).withStyle(ChatFormatting.GRAY));
-                        tooltip.add(Component.translatable("jei.taverntales_4ging.loot_bag.count",
+                        tooltip.add(Component.translatable("jei.taverntales.loot_bag.count",
                                 formatCount(drop)).withStyle(ChatFormatting.GRAY));
                     });
         }

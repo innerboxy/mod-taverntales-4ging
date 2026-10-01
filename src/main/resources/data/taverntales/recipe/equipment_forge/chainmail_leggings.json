@@ -1,0 +1,23 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:flint",
+      "count": 4
+    },
+    {
+      "ingredient": "minecraft:iron_ingot",
+      "count": 5
+    }
+  ],
+  "result": {
+    "id": "minecraft:chainmail_leggings",
+    "count": 1
+  }
+}

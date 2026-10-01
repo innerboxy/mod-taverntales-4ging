@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 
 @Mod(TavernTalesEquipmentForge.MODID)
 public class TavernTalesEquipmentForge {
-    public static final String MODID = "taverntales_4ging";
+    public static final String MODID = "taverntales";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public TavernTalesEquipmentForge(IEventBus modEventBus, ModContainer modContainer) {

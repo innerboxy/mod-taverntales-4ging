@@ -1,0 +1,19 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "taverntales:default_recipes_enabled"
+    }
+  ],
+  "type": "taverntales:equipment_forge",
+  "category": "taverntales:armor",
+  "materials": [
+    {
+      "ingredient": "minecraft:gold_ingot",
+      "count": 4
+    }
+  ],
+  "result": {
+    "id": "minecraft:golden_boots",
+    "count": 1
+  }
+}
