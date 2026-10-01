@@ -1,115 +1,32 @@
+// 装备锻造台（原 taverntales-4ging）
 plugins {
     id 'java-library'
-    id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.147'
     id 'idea'
+    id 'net.neoforged.moddev'
 }
 
-version = mod_version
-group = mod_group_id
-
-repositories {
-    mavenCentral()
-    maven {
-        name = 'BlameJared' // JEI
-        url = 'https://maven.blamejared.com/'
-    }
-    maven {
-        name = 'Modrinth' // BeyondDimensions
-        url = 'https://api.modrinth.com/maven'
-    }
-}
-
-base {
-    // Modrinth 社区惯例:文件名带上加载器与 MC 版本,便于玩家辨认。
-    // 结合 version = mod_version,产物为 <mod_id>-neoforge-<mc>-<mod_version>.jar
-    archivesName = "${mod_id}-neoforge-${minecraft_version}"
-}
-
-// Mojang ships Java 25 to end users in 26.1, so mods should target Java 25.
-java.toolchain.languageVersion = JavaLanguageVersion.of(25)
+apply from: rootProject.file('gradle/mod-common.gradle')
 
 neoForge {
-    version = project.neo_version
-
     accessTransformers {
         from 'src/main/resources/META-INF/accesstransformer.cfg'
     }
-
-    runs {
-        client {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        server {
-            server()
-            programArgument '--nogui'
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-
-        configureEach {
-            systemProperty 'forge.logging.markers', 'REGISTRIES'
-            logLevel = org.slf4j.event.Level.DEBUG
-        }
-    }
-
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-        }
-    }
 }
 
-def pinyin4j_version = '2.5.1'
 dependencies {
-    // 拼音搜索,随 jarJar 打包进 mod。26.1 起 MDG 取消了 additionalRuntimeClasspath,
-    // implementation 本身就会进开发环境的运行时类路径
+    // pinyin4j：锻造台界面的拼音搜索，打包进 jar
     implementation "com.belerweb:pinyin4j:${pinyin4j_version}"
     jarJar "com.belerweb:pinyin4j:${pinyin4j_version}"
 
-    // JEI:编译期仅依赖 API,运行期加载完整模组(可选依赖,玩家未装 JEI 也能正常运行)
+    // JEI (optional)
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
     runtimeOnly "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
 
-    // 超越维度:软依赖;运行时通过 ModList 探测,未安装时联动代码不加载。runtimeOnly 仅供开发环境测试联动
+    // BeyondDimensions (optional)
     compileOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
-    // runtimeOnly "maven.modrinth:beyonddimensions:${beyonddimensions_version}"
 
-    // JustEnoughResources:软依赖,用于在 JEI 中展示战利品袋掉落。JER 没有单独的 api 构件,
-    // 故 compileOnly 整个模组。注意 jer_version 是 Modrinth 版本 ID,不是版本号,原因见 gradle.properties
+    // Just Enough Resources (optional)
     compileOnly "maven.modrinth:just-enough-resources-jer:${jer_version}"
     runtimeOnly "maven.modrinth:just-enough-resources-jer:${jer_version}"
-}
-
-// This block of code expands all declared replace properties in the specified resource targets.
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-    ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
-}
-
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
-    }
 }
